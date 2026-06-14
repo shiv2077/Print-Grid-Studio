@@ -1,0 +1,42 @@
+.section {
+  position: relative;
+  padding-top: var(--section-pad-y);
+  padding-bottom: var(--section-pad-y);
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding-top: var(--section-pad-y-mobile);
+    padding-bottom: var(--section-pad-y-mobile);
+  }
+}
+
+.paper {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.paperWarm {
+  background: var(--paper-warm);
+  color: var(--ink);
+}
+
+.ink {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Hairline between alternating sections so seams read as engineered.
+   Applied via a top hairline on every section that follows another one. */
+.section + .section {
+  border-top: 1px solid var(--ink-10);
+}
+
+.ink + .section,
+.section + .ink {
+  border-top-color: var(--paper-30);
+}
+
+.ink + .ink {
+  border-top-color: var(--paper-30);
+}

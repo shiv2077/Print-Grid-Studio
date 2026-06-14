@@ -1,0 +1,87 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 64px;
+  align-items: center;
+}
+
+.copy {
+  max-width: 640px;
+}
+
+.eyebrow {
+  margin: 0 0 24px;
+}
+
+.headline {
+  margin: 0;
+}
+
+.lede {
+  margin: 32px 0 0;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+
+/* Link-as-CTA — same visuals as Button.primary / Button.secondary,
+   applied to <a> so we don't nest <button> inside <Link>. */
+.ctaPrimary,
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+  transition: background var(--t-fast), color var(--t-fast),
+    border-color var(--t-fast);
+}
+
+.ctaPrimary {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.ctaPrimary:hover {
+  background: var(--ink-hover);
+  border-color: var(--ink-hover);
+}
+
+.ctaSecondary {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.ctaSecondary:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.diagram {
+  justify-self: end;
+  width: 100%;
+  max-width: 480px;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .diagram {
+    justify-self: center;
+    max-width: 360px;
+  }
+}

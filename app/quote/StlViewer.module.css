@@ -1,0 +1,48 @@
+.viewer {
+  position: relative;
+  width: 100%;
+  /* "Square camera" per Task 10 spec — viewer aspect 1:1. */
+  aspect-ratio: 1 / 1;
+  background: transparent;
+  border: 1px solid var(--paper-30);
+  overflow: hidden;
+}
+
+.viewerCanvasHolder {
+  position: absolute;
+  inset: 0;
+}
+
+.viewerLabel {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-50);
+  pointer-events: none;
+}
+
+.viewerStatus {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-50);
+  pointer-events: none;
+}
+
+.viewerError {
+  color: var(--paper);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -1,0 +1,80 @@
+.heading {
+  margin: 0 0 48px;
+  max-width: 720px;
+}
+
+.headingTitle {
+  margin: 16px 0 0;
+}
+
+.headingLede {
+  margin: 24px 0 0;
+}
+
+.tableWrapper {
+  border-top: 1px solid var(--ink);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 14px;
+  font-feature-settings: 'tnum' 1;
+}
+
+.table thead th {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+  padding: 16px 24px 16px 0;
+  border-bottom: 1px solid var(--ink);
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid var(--ink-10);
+}
+
+.table tbody tr:last-child {
+  border-bottom: 1px solid var(--ink);
+}
+
+.table td {
+  padding: 20px 24px 20px 0;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.materialName {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+
+.spec {
+  color: var(--ink-70);
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 13px;
+  color: var(--ink-70);
+  white-space: normal;
+  max-width: 28ch;
+}
+
+@media (max-width: 768px) {
+  .table thead th,
+  .table td {
+    padding: 14px 16px 14px 0;
+  }
+}

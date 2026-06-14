@@ -1,0 +1,287 @@
+/* PrintGrid Studio — design tokens + global typography
+   Authoritative system. Components use these tokens via CSS variables.
+   Hardcoded hex values in *.module.css are a contract violation.
+   See BUILD_LOG/task-1-plan.md for the derivation of each token. */
+
+:root {
+  /* Surfaces — paper / paper-warm / ink. No accent colour: the system is
+     monochrome by contract. Emphasis is carried by typography + hairlines. */
+  --paper: #f5f5f7;
+  --paper-warm: #ede6d9;
+  --ink: #1d1d1f;
+  --ink-hover: #1a1a1a;
+
+  /* Ink tints (on paper) */
+  --ink-90: #2e2e30;
+  --ink-70: #5a5a5e;
+  --ink-60: #6c6c70;
+  --ink-50: #86868b;
+  --ink-30: #c5c5c8;
+  --ink-10: #e6e6e8;
+
+  /* Paper tints (on ink) */
+  --paper-90: #e6e6e8;
+  --paper-70: #a8a8ab;
+  --paper-50: #7a7a7d;
+  --paper-30: #4f4f52;
+
+  /* Section rhythm */
+  --section-pad-y: 120px;
+  --section-pad-y-mobile: 64px;
+  --container-max: 1200px;
+  --gutter: 32px;
+  --gutter-mobile: 24px;
+
+  /* Hairline */
+  --hairline: 1px solid var(--ink-10);
+  --hairline-on-ink: 1px solid var(--paper-30);
+
+  /* Motion */
+  --t-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --t-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  font-family: var(--font-inter), system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Typography classes — mirror BUILD_LOG/task-1-plan.md */
+
+.display {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.display-2 {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 64px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.display-3 {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.h-eyebrow {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-70);
+}
+
+.lede {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  color: var(--ink-70);
+}
+
+.caption {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--ink-70);
+}
+
+.micro {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink-50);
+}
+
+.mono-spec {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+}
+
+.mono-label {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-70);
+}
+
+/* Inverse-context overrides — when these classes appear inside an
+   ink-background section, they need to switch to paper tints. */
+.on-ink .h-eyebrow,
+.on-ink .lede,
+.on-ink .caption,
+.on-ink .micro,
+.on-ink .mono-label {
+  color: var(--paper-70);
+}
+
+.on-ink {
+  color: var(--paper);
+  background: var(--ink);
+}
+
+/* Mobile type scale — Task 13 spec */
+@media (max-width: 640px) {
+  .display {
+    font-size: 44px;
+    line-height: 1.08;
+  }
+  .display-2 {
+    font-size: 32px;
+    line-height: 1.15;
+  }
+  .display-3 {
+    font-size: 24px;
+    line-height: 1.25;
+  }
+  .lede {
+    font-size: 18px;
+  }
+}
+
+/* Grid-paper utility — 32px engineering paper background.
+   Inline SVG data-URL keeps lines crisp at any DPR. */
+.grid-paper {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' shape-rendering='crispEdges'><path d='M0 0H32M0 32H32M0 0V32M32 0V32' fill='none' stroke='%23E6E6E8' stroke-width='1'/></svg>");
+  background-size: 32px 32px;
+  background-position: 0 0;
+}
+
+.grid-paper-on-ink {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' shape-rendering='crispEdges'><path d='M0 0H32M0 32H32M0 0V32M32 0V32' fill='none' stroke='%234F4F52' stroke-width='1'/></svg>");
+  background-size: 32px 32px;
+  background-position: 0 0;
+}
+
+/* Focus visible — global. Components don't override this. */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+  border-radius: 1px;
+}
+
+/* Inverse focus ring — paper-on-ink surfaces need a visible outline */
+.on-ink *:focus-visible {
+  outline-color: var(--paper);
+}
+
+/* Reduced motion — kill transforms, allow color/opacity transitions */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal-on-scroll {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Selection */
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Glassmorphism surfaces — three only.
+   .glass:         sticky header in scrolled state
+   .glass-panel:   /quote sticky breakdown rail
+   .glass-overlay: mobile nav fullscreen overlay
+   Each layers a translucent paper fill over the page and applies a
+   saturated backdrop blur. Safari needs the -webkit- prefix; the
+   non-prefixed property is the standard, kept for forward compat. */
+.glass {
+  background: rgba(245, 245, 247, 0.72);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.glass-panel {
+  background: rgba(245, 245, 247, 0.78);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.glass-panel-dark {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: var(--paper);
+}
+
+.glass-overlay {
+  background: rgba(245, 245, 247, 0.85);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+}

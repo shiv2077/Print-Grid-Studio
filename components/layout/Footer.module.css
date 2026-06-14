@@ -1,0 +1,147 @@
+.footer {
+  background: var(--ink);
+  color: var(--paper);
+  padding-top: 96px;
+  padding-bottom: 40px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  gap: 64px;
+  padding-bottom: 64px;
+  border-bottom: 1px solid var(--paper-30);
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.colHeading {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-50);
+  margin: 0 0 8px;
+}
+
+.wordmark {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.wordmarkSub {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-50);
+  margin: -8px 0 16px;
+}
+
+.tagline {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--paper-70);
+  max-width: 28ch;
+  margin: 0;
+}
+
+.link {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 14px;
+  color: var(--paper-70);
+  border-bottom: 1px solid transparent;
+  align-self: flex-start;
+  transition: color var(--t-fast), border-color var(--t-fast);
+}
+
+.link:hover {
+  color: var(--paper);
+  border-bottom-color: var(--paper);
+}
+
+.contact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contactMeta {
+  color: var(--paper-70);
+}
+
+/* Modern visually-hidden recipe — keeps content in the AT tree but
+   removes it from visual layout. Replaces the old left:-10000 hack. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.contactValue {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 13px;
+  color: var(--paper);
+  letter-spacing: 0.02em;
+}
+
+.contactValue:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.bottomNote {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paper-50);
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .footer {
+    padding-top: 64px;
+  }
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+  }
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

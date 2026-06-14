@@ -1,0 +1,315 @@
+/* Glass-panel surface — dark glass over the dark page bg. Inner color
+   rules below use paper-* tints so text reads against the translucent
+   surface; emphasis surfaces (totalRow, primary CTA) stay ink to keep
+   their hierarchical weight against the glass. */
+.panel {
+  position: sticky;
+  top: 32px;
+  min-width: 360px;
+  padding: 32px;
+  font-family: var(--font-jetbrains), monospace;
+  font-feature-settings: 'tnum' 1;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-70);
+}
+
+.body {
+  padding: 8px 20px 20px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 12px;
+}
+
+.row:last-of-type {
+  border-bottom: none;
+}
+
+.rowLabel {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 13px;
+  color: var(--paper-70);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.rowValue {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--paper);
+  letter-spacing: 0.02em;
+}
+
+.rowMuted {
+  color: var(--paper-50);
+}
+
+.rowDiscount .rowValue {
+  color: var(--paper);
+  font-weight: 600;
+}
+
+.subtotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 16px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 8px;
+}
+
+.subtotalRow .rowLabel {
+  color: var(--paper);
+  font-weight: 600;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 20px;
+  background: var(--paper);
+  color: var(--ink);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.totalLabel {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-70);
+}
+
+.totalValue {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0;
+}
+
+.gstNote {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--paper-50);
+  margin: 12px 0 0;
+  text-align: center;
+}
+
+.rushRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 12px;
+}
+
+.rushButton {
+  background: transparent;
+  border: 1px solid var(--paper);
+  border-radius: 2px;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.rushButton:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.rushButtonOn {
+  background: var(--paper);
+  border-color: var(--paper);
+  color: var(--ink);
+}
+
+.rushButtonOn:hover {
+  background: var(--paper-90);
+  border-color: var(--paper-90);
+}
+
+.promoSection {
+  padding: 16px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.promoLabel {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-50);
+}
+
+.promoForm {
+  display: flex;
+  gap: 8px;
+}
+
+.promoInput {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--paper-30);
+  border-radius: 2px;
+  padding: 8px 12px;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--paper);
+  min-width: 0;
+}
+
+.promoInput::placeholder {
+  color: var(--paper-50);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.promoApply {
+  background: transparent;
+  border: 1px solid var(--paper);
+  border-radius: 2px;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.promoApply:hover:not(:disabled) {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.promoApply:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.promoApplied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 2px;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.promoClear {
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.promoError {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--paper);
+  margin: 0;
+  letter-spacing: 0.05em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.continueButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 18px 28px;
+  margin-top: 16px;
+  background: var(--paper);
+  border: 1px solid var(--paper);
+  border-radius: 2px;
+  color: var(--ink);
+  font-family: var(--font-inter), sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast),
+    border-color var(--t-fast);
+}
+
+.continueButton:hover:not(:disabled) {
+  background: var(--paper-90);
+  border-color: var(--paper-90);
+}
+
+.continueButton:disabled {
+  background: transparent;
+  color: var(--paper-50);
+  border-color: var(--paper-30);
+  cursor: not-allowed;
+}
+
+.continueHelper {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--paper-50);
+  margin: 8px 0 0;
+  text-align: center;
+}
+
+.empty {
+  padding: 32px 20px;
+  text-align: center;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--paper-50);
+}

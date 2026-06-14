@@ -1,0 +1,68 @@
+.group {
+  display: inline-flex;
+  border: 1px solid var(--ink);
+  background: transparent;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.option {
+  flex: 1;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 12px 18px;
+  background: transparent;
+  color: var(--ink-70);
+  border: none;
+  border-right: 1px solid var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.option:last-child {
+  border-right: none;
+}
+
+.option:hover:not(.selected):not(:disabled) {
+  background: var(--ink-10);
+  color: var(--ink);
+}
+
+.selected {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.option:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Mono variant — for layer-height numbers etc */
+.mono .option {
+  font-family: var(--font-jetbrains), monospace;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Inverse context — inside .on-ink */
+:global(.on-ink) .group {
+  border-color: var(--paper);
+}
+
+:global(.on-ink) .option {
+  color: var(--paper-70);
+  border-right-color: var(--paper);
+}
+
+:global(.on-ink) .option:hover:not(.selected):not(:disabled) {
+  background: var(--paper-30);
+  color: var(--paper);
+}
+
+:global(.on-ink) .selected {
+  background: var(--paper);
+  color: var(--ink);
+}

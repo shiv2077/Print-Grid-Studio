@@ -1,0 +1,457 @@
+.intro {
+  margin: 0 0 48px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+}
+
+.code {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+.placedAt {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--ink-50);
+  margin: 0;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 2px;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pillPending,
+.pillPaid {
+  background: var(--ink-10);
+  color: var(--ink);
+}
+
+/* Active states (printing, QC) — solid ink fill, paper text. Same as the
+   "complete" pills below; the distinction now comes from the status copy
+   itself, not from colour. */
+.pillPrinting,
+.pillQc {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.pillShipped,
+.pillDelivered {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Cancelled — outline only, with strike-through, so it never reads as
+   active. The strike + hollow fill is the no-colour way of saying "dead". */
+.pillCancelled {
+  background: transparent;
+  color: var(--ink-50);
+  border: 1px solid var(--ink-30);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+/* Layout */
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 64px;
+  align-items: start;
+}
+
+.section + .section {
+  margin-top: 48px;
+}
+
+.sectionHeading {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+  margin: 0 0 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ink);
+}
+
+/* Timeline */
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timelineRow {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.timelineRow + .timelineRow .timelineDot::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: -16px;
+  width: 1px;
+  height: 16px;
+  background: var(--ink-30);
+}
+
+.timelineDot {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timelineDotInner {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--ink-30);
+}
+
+.timelineRowPast .timelineDotInner {
+  background: var(--ink);
+}
+
+/* Current step — solid ink dot, slightly larger ring drawn via box-shadow
+   so it visually separates from past/future steps without using colour. */
+.timelineRowCurrent .timelineDotInner {
+  background: var(--ink);
+  box-shadow: 0 0 0 3px var(--ink-10);
+}
+
+.timelineRowFuture .timelineDotInner {
+  background: var(--ink-30);
+  width: 7px;
+  height: 7px;
+}
+
+.timelineLabel {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 0;
+}
+
+.timelineRowFuture .timelineLabel {
+  color: var(--ink-30);
+}
+
+.timelineMeta {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--ink-50);
+  margin: 4px 0 0;
+}
+
+.timelineRowFuture .timelineMeta {
+  color: var(--ink-30);
+}
+
+/* Items */
+.itemList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--ink);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--ink-10);
+  align-items: start;
+}
+
+.itemMain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.itemName {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 0;
+  word-break: break-all;
+}
+
+.itemSpec {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--ink-70);
+  margin: 0;
+}
+
+.itemSubtotal {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Breakdown */
+.breakdown {
+  border-top: 1px solid var(--ink);
+  font-family: var(--font-jetbrains), monospace;
+  font-feature-settings: 'tnum' 1;
+}
+
+.breakdownRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--ink-10);
+  gap: 12px;
+}
+
+.breakdownLabel {
+  font-size: 13px;
+  color: var(--ink-70);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.breakdownValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+
+.breakdownDiscount .breakdownValue {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 20px 0;
+  border-top: 1px solid var(--ink);
+  margin-top: 8px;
+}
+
+.totalLabel {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-70);
+}
+
+.totalValue {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0;
+}
+
+/* Address + Tracking */
+.addressBlock {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 0;
+  white-space: pre-line;
+}
+
+.addressMeta {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink-70);
+  margin: 12px 0 0;
+}
+
+.tracking {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trackingNumber {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.05em;
+}
+
+/* Update CTA */
+.updateCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  border-radius: 2px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-inter), sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  margin-top: 24px;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.updateCta:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Invalid-code form */
+.invalidWrapper {
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+}
+
+.invalidHeading {
+  margin: 0;
+}
+
+.invalidBody {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--ink-70);
+  margin: 0;
+}
+
+.lookupForm {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.lookupInput {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  padding: 12px 16px;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.lookupInput::placeholder {
+  color: var(--ink-50);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.lookupSubmit {
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  padding: 12px 20px;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.lookupSubmit:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+.demoCodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.demoCodesLabel {
+  margin-top: 16px;
+}
+
+.demoCode {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--ink-70);
+  border: 1px solid var(--ink-30);
+  border-radius: 2px;
+  padding: 6px 10px;
+  transition: color var(--t-fast), border-color var(--t-fast);
+}
+
+.demoCode:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .code {
+    font-size: 24px;
+  }
+}

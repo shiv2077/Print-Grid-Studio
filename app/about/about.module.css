@@ -1,0 +1,249 @@
+.column {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  margin: 0 0 24px;
+}
+
+.heroHeadline {
+  margin: 0;
+}
+
+.heroLede {
+  margin: 32px 0 0;
+}
+
+.sectionEyebrow {
+  margin: 0 0 16px;
+}
+
+.sectionHeading {
+  margin: 0 0 32px;
+}
+
+.standardsLabel {
+  margin: 32px 0 0;
+}
+
+.standardsLabelGap {
+  margin: 40px 0 0;
+}
+
+.body {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--ink-90);
+  margin: 0 0 24px;
+}
+
+.body:last-child {
+  margin-bottom: 0;
+}
+
+.body strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.specList {
+  list-style: none;
+  padding: 0;
+  margin: 32px 0 0;
+  border-top: 1px solid var(--ink);
+}
+
+.specRow {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  align-items: baseline;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--ink-10);
+}
+
+.specLabel {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-50);
+}
+
+.specValue {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+
+.standardsList {
+  list-style: none;
+  padding: 0;
+  margin: 32px 0 0;
+}
+
+.standardsRow {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid var(--ink-10);
+}
+
+.standardsRow:first-child {
+  border-top: 1px solid var(--ink);
+}
+
+.standardsRow:last-child {
+  border-bottom: 1px solid var(--ink-10);
+}
+
+.standardsBullet {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-70);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+.standardsBulletAccent {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.standardsText {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink-90);
+}
+
+.founderLayout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.founderPhoto {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  width: 200px;
+  border: 1px solid var(--paper-30);
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+}
+
+.founderPhotoTitleBlock {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--paper-30);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-50);
+}
+
+.founderPhotoBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.founderPhotoLabel {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+.founderPhotoNote {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 11px;
+  color: var(--paper-50);
+}
+
+.founderBio {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.founderName {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  margin: 0;
+  color: var(--paper);
+}
+
+.founderRole {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-50);
+  margin: 0;
+}
+
+.founderText {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--paper-70);
+  margin: 0;
+}
+
+.founderLinks {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.founderLink {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--paper);
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--paper-30);
+  padding-bottom: 2px;
+  transition: color var(--t-fast), border-color var(--t-fast);
+}
+
+.founderLink:hover {
+  color: var(--paper);
+  border-bottom-color: var(--paper);
+}
+
+@media (max-width: 640px) {
+  .specRow {
+    grid-template-columns: 140px 1fr;
+  }
+  .founderLayout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .founderPhoto {
+    width: 160px;
+  }
+}
