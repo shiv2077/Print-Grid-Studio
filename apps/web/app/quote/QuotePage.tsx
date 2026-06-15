@@ -1,15 +1,24 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { Container } from '@/components/ui/Container';
 import { useStlParser } from '@/lib/use-stl-parser';
 import { quote, formatINR, type FileInput, type QuoteResult } from '@printgrid/pricing';
 import { computeMass } from '@printgrid/pricing';
+import { createOrder, loadRazorpay, openCheckout, pollUntilPaid } from '@/lib/checkout';
 import { Dropzone } from './Dropzone';
 import { FileCard } from './FileCard';
 import { PriceBreakdown } from './PriceBreakdown';
 import { initialState, reducer } from './state';
 import styles from './quote.module.css';
+
+type CheckoutState =
+  | { phase: 'idle' }
+  | { phase: 'creating' }
+  | { phase: 'awaiting' }
+  | { phase: 'confirming'; code: string }
+  | { phase: 'paid'; code: string }
+  | { phase: 'error'; message: string };
 
 let idCounter = 0;
 const nextId = () => `f${++idCounter}-${Date.now().toString(36)}`;
@@ -129,34 +138,59 @@ export function QuotePage() {
     return { canContinue: true, blockedReason: null };
   }, [state.files]);
 
-  const onContinue = useCallback(() => {
-    // Mock — backend phase wires Razorpay. Log payload so the morning
-    // reviewer can confirm the shape.
-    // eslint-disable-next-line no-console
-    console.info('[quote] continue (mock):', {
-      result,
-      files: state.files.map((f) => ({
-        id: f.id,
-        fileName: f.fileName,
-        config: f.config,
-        parse:
-          f.parse.status === 'done'
-            ? {
-                triangleCount: f.parse.result.triangleCount,
-                volumeMm3: f.parse.result.volumeMm3,
-                bboxSize: f.parse.result.bboxSize,
-              }
-            : f.parse.status,
-      })),
-      rush: state.rush,
-      promo: state.appliedPromo,
-    });
-    if (typeof window !== 'undefined') {
-      window.alert(
-        'Mock checkout — see browser console for the payload that would go to the backend.'
-      );
+  const [checkout, setCheckout] = useState<CheckoutState>({ phase: 'idle' });
+  const busy =
+    checkout.phase === 'creating' ||
+    checkout.phase === 'awaiting' ||
+    checkout.phase === 'confirming';
+
+  const onContinue = useCallback(async () => {
+    const doneFiles = state.files.filter((f) => f.parse.status === 'done');
+    // M2 checkout creates one order per file; multi-file orders are a later phase.
+    // Submitting only one file would mismatch the displayed multi-file total, so
+    // we block it rather than charge a wrong amount.
+    if (doneFiles.length !== 1) {
+      setCheckout({
+        phase: 'error',
+        message: 'Checkout currently supports a single file per order. Multi-file orders are coming soon.',
+      });
+      return;
     }
-  }, [result, state.files, state.rush, state.appliedPromo]);
+    const row = doneFiles[0];
+    const file = row ? filesRef.current.get(row.id) : undefined;
+    if (!row || !file) {
+      setCheckout({ phase: 'error', message: 'Could not read the uploaded file. Please re-add it.' });
+      return;
+    }
+
+    setCheckout({ phase: 'creating' });
+    try {
+      // The SERVER reprices from its own volume measurement; we send no amount.
+      const order = await createOrder(file, row.config, {
+        rush: state.rush,
+        promo: state.appliedPromo,
+      });
+      await loadRazorpay();
+      setCheckout({ phase: 'awaiting' });
+      openCheckout({
+        order,
+        onSuccess: async () => {
+          // NOT paid yet — the browser cannot self-confirm. Poll the server,
+          // which flips to `paid` only after the signature-verified webhook.
+          setCheckout({ phase: 'confirming', code: order.order_code });
+          const outcome = await pollUntilPaid(order.order_code);
+          setCheckout(
+            outcome === 'paid'
+              ? { phase: 'paid', code: order.order_code }
+              : { phase: 'confirming', code: order.order_code },
+          );
+        },
+        onDismiss: () => setCheckout({ phase: 'idle' }),
+      });
+    } catch (err) {
+      setCheckout({ phase: 'error', message: (err as Error).message });
+    }
+  }, [state.files, state.rush, state.appliedPromo]);
 
   const onRemove = useCallback((id: string) => {
     filesRef.current.delete(id);
@@ -176,6 +210,43 @@ export function QuotePage() {
           processing.
         </p>
       </div>
+
+      {checkout.phase !== 'idle' && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            margin: '0 0 1.5rem',
+            padding: '0.85rem 1.1rem',
+            borderRadius: 12,
+            border: '1px solid rgba(255,255,255,0.14)',
+            background:
+              checkout.phase === 'paid'
+                ? 'rgba(34,197,94,0.12)'
+                : checkout.phase === 'error'
+                  ? 'rgba(239,68,68,0.12)'
+                  : 'rgba(255,255,255,0.06)',
+            fontSize: '0.95rem',
+            lineHeight: 1.5,
+          }}
+        >
+          {checkout.phase === 'creating' && 'Creating your order…'}
+          {checkout.phase === 'awaiting' && 'Opening the secure Razorpay window…'}
+          {checkout.phase === 'confirming' && (
+            <>
+              <strong>Payment received — confirming with our server.</strong> Your order isn’t marked
+              paid until we verify the payment. This updates automatically (order {checkout.code}).
+            </>
+          )}
+          {checkout.phase === 'paid' && (
+            <>
+              <strong>Paid ✓</strong> Order {checkout.code} is confirmed. A confirmation email is on
+              its way.
+            </>
+          )}
+          {checkout.phase === 'error' && <>Checkout error: {checkout.message}</>}
+        </div>
+      )}
 
       <div className={styles.layout}>
         <div className={styles.left}>
@@ -235,7 +306,7 @@ export function QuotePage() {
             promoError={state.promoError}
             onApplyPromo={() => dispatch({ type: 'APPLY_PROMO' })}
             onClearPromo={() => dispatch({ type: 'CLEAR_PROMO' })}
-            canContinue={canContinue}
+            canContinue={canContinue && !busy}
             onContinue={onContinue}
             blockedReason={blockedReason}
           />
@@ -255,7 +326,7 @@ export function QuotePage() {
               type="button"
               className={styles.mobileDockCta}
               onClick={onContinue}
-              disabled={!canContinue}
+              disabled={!canContinue || busy}
             >
               Continue →
             </button>
