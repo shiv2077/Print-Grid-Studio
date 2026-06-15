@@ -22,6 +22,10 @@ export class OrdersRepository {
     return row ?? null;
   }
 
+  async filesForOrder(orderId: string) {
+    return this.db.select().from(orderFiles).where(eq(orderFiles.orderId, orderId));
+  }
+
   async findByRazorpayOrderId(razorpayOrderId: string): Promise<OrderRow | null> {
     const [row] = await this.db
       .select()
