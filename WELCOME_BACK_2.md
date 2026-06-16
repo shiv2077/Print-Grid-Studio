@@ -41,7 +41,8 @@ Branch: `feat/m3-tracking-reports` (off `feat/monorepo-and-checkout`). All commi
    Tunnel localhost, register `<tunnel>/api/webhooks/razorpay`, pay with `4111 1111 1111 1111`,
    watch `pending → paid`.
 3. **Deploy to Vercel** with the **pooler** `DATABASE_URL` (`DEPLOY_RUNBOOK.md`).
-4. **Review + merge** — PR #1 (`feat/monorepo-and-checkout`) and PR #2 (this branch).
+4. **Review + merge** — PR #1 (`feat/monorepo-and-checkout`) then PR #2
+   (**https://github.com/shiv2077/Print-Grid-Studio/pull/2**, based on PR #1's branch).
 
 ## Scope discipline
 Only the six requested features were built. Nothing from the broader vision (marketplace,
