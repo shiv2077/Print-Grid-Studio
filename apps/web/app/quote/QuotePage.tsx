@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useStlParser } from '@/lib/use-stl-parser';
 import {
   quote,
@@ -37,6 +38,16 @@ const FINISH_LABELS: Record<Finish, string> = {
 
 const MAX_FILES = 10;
 const MAX_BYTES = 100 * 1024 * 1024;
+
+// three.js viewer is browser-only — load it client-side, never on the server.
+const StlViewer = dynamic(() => import('./StlViewer').then((m) => m.StlViewer), {
+  ssr: false,
+  loading: () => (
+    <div className="quote-viewer">
+      <div className="quote-viewer__empty">Loading preview…</div>
+    </div>
+  ),
+});
 
 let idCounter = 0;
 const nextId = () => `f${++idCounter}-${Date.now().toString(36)}`;
@@ -163,6 +174,8 @@ export function QuotePage() {
   }, []);
 
   const fileCount = state.files.filter((f) => f.parse.status === 'done').length;
+  const activeRow = state.files.find((f) => f.parse.status === 'done');
+  const activeFile = activeRow ? filesRef.current.get(activeRow.id) : undefined;
 
   return (
     <>
@@ -210,6 +223,13 @@ export function QuotePage() {
           <div className="quote-grid">
             {/* Left: upload + per-file controls */}
             <div className="quote-col">
+              {activeRow && activeRow.parse.status === 'done' && activeFile && (
+                <StlViewer
+                  file={activeFile}
+                  materialKey={activeRow.config.materialKey}
+                  triangleCount={activeRow.parse.result.triangleCount}
+                />
+              )}
               <label
                 className={'quote-dropzone' + (dropActive ? ' is-over' : '')}
                 onDrop={(e) => { e.preventDefault(); setDropActive(false); acceptFiles(Array.from(e.dataTransfer.files)); }}

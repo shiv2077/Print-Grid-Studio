@@ -1,21 +1,20 @@
 'use client';
 
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { ContactShadows, OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import * as THREE from 'three';
 import type { MaterialKey } from '@printgrid/pricing';
-import styles from './StlViewer.module.css';
 
 const MATERIAL_COLORS: Readonly<Record<MaterialKey, { color: string; opacity: number }>> = {
   'pla-plus': { color: '#EAEAEA', opacity: 1 },
-  'pla-lw':   { color: '#D8C9A8', opacity: 1 },
-  'petg':     { color: '#DCDCDF', opacity: 0.55 },
-  'abs':      { color: '#1A1A1A', opacity: 1 },
-  'tpu-95a':  { color: '#2A2A2A', opacity: 1 },
-  'pa6':      { color: '#B89A7E', opacity: 1 },
-  'pa-cf':    { color: '#2A2A2C', opacity: 1 },
+  'pla-lw': { color: '#D8C9A8', opacity: 1 },
+  petg: { color: '#DCDCDF', opacity: 0.55 },
+  abs: { color: '#3A3A3A', opacity: 1 },
+  'tpu-95a': { color: '#4A4A4A', opacity: 1 },
+  pa6: { color: '#B89A7E', opacity: 1 },
+  'pa-cf': { color: '#4A4A4C', opacity: 1 },
 };
 
 const HIGH_POLY = 250_000;
@@ -33,26 +32,29 @@ export function StlViewer({ file, materialKey, triangleCount }: StlViewerProps) 
   useEffect(() => {
     let cancelled = false;
     const loader = new STLLoader();
-    file.arrayBuffer().then((buf) => {
-      if (cancelled) return;
-      try {
-        const geom = loader.parse(buf);
-        geom.computeVertexNormals();
-        // Center geometry at origin
-        geom.computeBoundingBox();
-        const bbox = geom.boundingBox;
-        if (bbox) {
-          const center = new THREE.Vector3();
-          bbox.getCenter(center);
-          geom.translate(-center.x, -center.y, -center.z);
+    file
+      .arrayBuffer()
+      .then((buf) => {
+        if (cancelled) return;
+        try {
+          const geom = loader.parse(buf);
+          geom.computeVertexNormals();
+          geom.computeBoundingBox();
+          const bbox = geom.boundingBox;
+          if (bbox) {
+            const center = new THREE.Vector3();
+            bbox.getCenter(center);
+            geom.translate(-center.x, -center.y, -center.z);
+          }
+          setGeometry(geom);
+          setError(null);
+        } catch {
+          setError('Could not render preview');
         }
-        setGeometry(geom);
-      } catch {
-        setError('Could not render preview');
-      }
-    }).catch(() => {
-      if (!cancelled) setError('Could not read file');
-    });
+      })
+      .catch(() => {
+        if (!cancelled) setError('Could not read file');
+      });
     return () => {
       cancelled = true;
       setGeometry((g) => {
@@ -66,41 +68,22 @@ export function StlViewer({ file, materialKey, triangleCount }: StlViewerProps) 
   const isHighPoly = triangleCount > HIGH_POLY;
 
   return (
-    <div className={styles.viewer}>
-      <span className={styles.viewerLabel}>STL · PREVIEW</span>
-      <div className={styles.viewerCanvasHolder}>
-        {error ? (
-          <div className={`${styles.viewerStatus} ${styles.viewerError}`}>
-            {error}
-          </div>
-        ) : !geometry ? (
-          <div className={styles.viewerStatus}>Loading preview…</div>
-        ) : (
-          <Canvas
-            camera={{ position: [80, 70, 100], fov: 35 }}
-            dpr={[1, 1.5]}
-            gl={{ antialias: true, alpha: true }}
-          >
-            <ambientLight intensity={0.45} />
-            {/* No castShadow on lights — Canvas has no `shadows` prop and
-                the spec forbids non-contact shadows. drei's ContactShadows
-                handles the contact-shadow-on-plane independently. */}
+    <div className="quote-viewer">
+      <span className="quote-viewer__label">STL · preview</span>
+      {error ? (
+        <div className="quote-viewer__empty">{error}</div>
+      ) : !geometry ? (
+        <div className="quote-viewer__empty">Loading preview…</div>
+      ) : (
+        <>
+          <Canvas camera={{ position: [80, 70, 100], fov: 35 }} dpr={[1, 1.5]} gl={{ antialias: true, alpha: true }}>
+            <ambientLight intensity={0.5} />
             <directionalLight position={[80, 120, 60]} intensity={0.9} />
             <directionalLight position={[-80, 40, -60]} intensity={0.35} />
             <Suspense fallback={null}>
-              <CenteredModel
-                geometry={geometry}
-                colorSpec={colorSpec}
-                isHighPoly={isHighPoly}
-              />
+              <CenteredModel geometry={geometry} colorSpec={colorSpec} isHighPoly={isHighPoly} />
               {!isHighPoly && (
-                <ContactShadows
-                  position={[0, -50, 0]}
-                  opacity={0.35}
-                  scale={200}
-                  blur={2}
-                  far={120}
-                />
+                <ContactShadows position={[0, -50, 0]} opacity={0.3} scale={200} blur={2} far={120} />
               )}
             </Suspense>
             <OrbitControls
@@ -114,8 +97,9 @@ export function StlViewer({ file, materialKey, triangleCount }: StlViewerProps) 
               autoRotateSpeed={0.6}
             />
           </Canvas>
-        )}
-      </div>
+          <span className="quote-viewer__tip">Drag to rotate · scroll to zoom</span>
+        </>
+      )}
     </div>
   );
 }
@@ -129,9 +113,6 @@ function CenteredModel({
   colorSpec: { color: string; opacity: number };
   isHighPoly: boolean;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  // Scale the geometry to a sane camera-friendly size: longest axis = 80
   const scaledGeometry = useMemo(() => {
     const cloned = geometry.clone();
     cloned.computeBoundingBox();
@@ -140,16 +121,11 @@ function CenteredModel({
     const size = new THREE.Vector3();
     bbox.getSize(size);
     const longest = Math.max(size.x, size.y, size.z) || 1;
-    const target = 80;
-    const factor = target / longest;
-    cloned.scale(factor, factor, factor);
+    cloned.scale(80 / longest, 80 / longest, 80 / longest);
     return cloned;
   }, [geometry]);
 
-  // Auto-rotate carrier — drei's OrbitControls handles autoRotate;
-  // useFrame here is a no-op placeholder we keep in case we want
-  // to tie a print-progress shader in later.
-  useFrame(() => {});
+  const meshRef = useRef<THREE.Mesh>(null);
 
   return (
     <mesh ref={meshRef} geometry={scaledGeometry}>
