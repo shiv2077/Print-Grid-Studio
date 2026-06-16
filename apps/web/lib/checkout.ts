@@ -3,6 +3,7 @@
 // paid — it submits the files, opens Razorpay with the server-issued order id,
 // then POLLS the server (which only flips to `paid` after a verified webhook).
 import type { FileRowConfig } from '@/app/quote/state';
+import type { ShippingAddress } from '@/lib/address';
 
 declare global {
   interface Window {
@@ -32,7 +33,7 @@ export interface OrderFileInput {
 
 export async function createOrder(
   files: OrderFileInput[],
-  opts: { rush?: boolean; promo?: string | null; addressState?: string | null; email?: string | null } = {},
+  opts: { rush?: boolean; promo?: string | null; address?: ShippingAddress; email?: string | null } = {},
 ): Promise<CreateOrderResponse> {
   const fd = new FormData();
   for (const { file } of files) fd.append('file', file, file.name);
@@ -42,8 +43,8 @@ export async function createOrder(
       configs: files.map((f) => f.config),
       rush: opts.rush ?? false,
       promo: opts.promo ?? null,
-      addressState: opts.addressState ?? null,
-      email: opts.email ?? null,
+      email: opts.email ?? opts.address?.email ?? null,
+      address: opts.address ?? null,
     }),
   );
 

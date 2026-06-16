@@ -11,6 +11,7 @@ import { meshVolumeMm3 } from './mesh-volume';
 import { uploadModel } from './storage';
 import { createRazorpayOrder, razorpayKeyId } from './razorpay';
 import { createOrder, addOrderFile, genOrderCode } from './orders';
+import type { ShippingAddress } from '../address';
 
 export interface FileConfig {
   materialKey: MaterialKey;
@@ -31,6 +32,7 @@ export interface CreateOptions {
   promo?: PromoCode | null;
   addressState?: string | null;
   email?: string | null;
+  address?: ShippingAddress | null;
 }
 
 export interface CreateOrderResult {
@@ -71,7 +73,9 @@ export async function createOrderFromFiles(files: IncomingFile[], opts: CreateOp
     multicolor: m.config.multicolor,
     qty: m.config.qty,
   }));
-  const q = quote({ files: fileInputs, rush: !!opts.rush, promo: opts.promo ?? null, addressState: opts.addressState ?? null });
+  // The buyer's state only changes the GST split (CGST/SGST vs IGST), never the total.
+  const addressState = opts.address?.state ?? opts.addressState ?? null;
+  const q = quote({ files: fileInputs, rush: !!opts.rush, promo: opts.promo ?? null, addressState });
 
   const orderCode = genOrderCode();
   const totalVolume = measured.reduce((s, m) => s + m.volumeMm3, 0);
@@ -79,14 +83,22 @@ export async function createOrderFromFiles(files: IncomingFile[], opts: CreateOp
   // 3. Razorpay order for the SERVER amount.
   const rzp = await createRazorpayOrder(q.grandTotalPaise, orderCode);
 
-  // 4. Persist the order, then upload each file + its row.
+  // 4. Persist the order (incl. shipping address), then upload each file + its row.
+  const addr = opts.address ?? null;
   const order = await createOrder({
     orderCode,
     status: 'pending',
     amountPaise: q.grandTotalPaise,
     currency: 'INR',
     serverVolumeMm3: totalVolume,
-    email: opts.email ?? null,
+    email: addr?.email ?? opts.email ?? null,
+    shipName: addr?.name ?? null,
+    shipPhone: addr?.phone ?? null,
+    shipLine1: addr?.line1 ?? null,
+    shipLine2: addr?.line2 ?? null,
+    shipCity: addr?.city ?? null,
+    shipState: addr?.state ?? null,
+    shipPincode: addr?.pincode ?? null,
     razorpayOrderId: rzp.id,
   });
 

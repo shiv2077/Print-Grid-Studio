@@ -17,7 +17,12 @@ import {
 } from '@printgrid/pricing';
 import { createOrder, loadRazorpay, openCheckout, pollUntilPaid } from '@/lib/checkout';
 import { parseModel } from '@/lib/parse-model';
+import { validateAddress, type ShippingAddress, type AddressField } from '@/lib/address';
 import { initialState, reducer } from './state';
+
+const EMPTY_ADDRESS: ShippingAddress = {
+  name: '', phone: '', email: '', line1: '', line2: '', city: '', state: '', pincode: '',
+};
 
 type CheckoutState =
   | { phase: 'idle' }
@@ -139,6 +144,17 @@ export function QuotePage() {
   }, [state.files]);
 
   const [checkout, setCheckout] = useState<CheckoutState>({ phase: 'idle' });
+  const [addr, setAddr] = useState<ShippingAddress>(EMPTY_ADDRESS);
+  const [addrErrors, setAddrErrors] = useState<Partial<Record<AddressField, string>>>({});
+  const setField = (k: AddressField) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setAddr((a) => ({ ...a, [k]: e.target.value }));
+  const field = (k: AddressField, label: string, placeholder?: string, inputMode?: 'numeric' | 'tel' | 'email') => (
+    <label className="quote-row">
+      <span className="quote-row__label">{label}</span>
+      <input type="text" value={addr[k] ?? ''} onChange={setField(k)} placeholder={placeholder} inputMode={inputMode} />
+      {addrErrors[k] && <span className="quote-warning" style={{ marginTop: 4 }}>{addrErrors[k]}</span>}
+    </label>
+  );
   const busy = checkout.phase === 'creating' || checkout.phase === 'awaiting' || checkout.phase === 'confirming';
 
   const onContinue = useCallback(async () => {
@@ -154,10 +170,16 @@ export function QuotePage() {
       setCheckout({ phase: 'error', message: 'Could not read one of the files. Please re-add it.' });
       return;
     }
+    const av = validateAddress(addr);
+    setAddrErrors(av.fieldErrors);
+    if (!av.ok) {
+      setCheckout({ phase: 'error', message: 'Please complete the shipping address below.' });
+      return;
+    }
     setCheckout({ phase: 'creating' });
     try {
       // The SERVER reprices from its own volume measurement of every file; we send no amount.
-      const order = await createOrder(orderFiles, { rush: state.rush, promo: state.appliedPromo });
+      const order = await createOrder(orderFiles, { rush: state.rush, promo: state.appliedPromo, address: addr });
       await loadRazorpay();
       setCheckout({ phase: 'awaiting' });
       openCheckout({
@@ -173,7 +195,7 @@ export function QuotePage() {
     } catch (err) {
       setCheckout({ phase: 'error', message: (err as Error).message });
     }
-  }, [state.files, state.rush, state.appliedPromo]);
+  }, [state.files, state.rush, state.appliedPromo, addr]);
 
   const onRemove = useCallback((id: string) => {
     filesRef.current.delete(id);
@@ -343,6 +365,26 @@ export function QuotePage() {
                       </div>
                     );
                   })}
+                </div>
+              )}
+
+              {state.files.length > 0 && (
+                <div className="quote-file-card" style={{ marginTop: 16 }}>
+                  <div className="quote-file-card__header">
+                    <span className="quote-file-card__name">Shipping address</span>
+                  </div>
+                  <div className="quote-controls">
+                    {field('name', 'Full name')}
+                    {field('phone', 'Phone', '10-digit mobile', 'tel')}
+                  </div>
+                  {field('email', 'Email (for confirmation)', 'you@example.com', 'email')}
+                  {field('line1', 'Address line 1')}
+                  {field('line2', 'Address line 2 (optional)')}
+                  <div className="quote-controls">
+                    {field('city', 'City')}
+                    {field('state', 'State')}
+                  </div>
+                  {field('pincode', 'PIN code', '6 digits', 'numeric')}
                 </div>
               )}
             </div>
