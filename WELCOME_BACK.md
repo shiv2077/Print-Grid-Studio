@@ -39,6 +39,6 @@ no live payment, no merge to `main` — those are yours (see "Your remaining ste
 1. **Rotate secrets** — `SECRETS_TODO.md` (DB password, Supabase service_role, Razorpay keys, GitHub token). They were shared in chat.
 2. **Local test-card payment via tunnel** — `cloudflared tunnel --url http://localhost:3001`… actually the API is same-origin now, so tunnel `http://localhost:3000`; register `<tunnel>/api/webhooks/razorpay` as the Razorpay test webhook + set `RAZORPAY_WEBHOOK_SECRET` in `apps/web/.env.local`; run a payment with card `4111 1111 1111 1111`; watch `pending → paid`. (This is the step that finally **verifies** the money path.)
 3. **Deploy to Vercel** — `DEPLOY_RUNBOOK.md`. Use the **pooler** `DATABASE_URL` (the direct IPv6 host fails on Vercel). Apply migration `0002` on any fresh DB.
-4. **Review + merge the PR** — opened against `main` (link below / in the GitHub "Pull requests" tab). I did **not** merge.
+4. **Review + merge the PR** — opened against `main`: **https://github.com/shiv2077/Print-Grid-Studio/pull/1**. I did **not** merge.
 
 > Note: migrations `0001` + `0002` are already applied to your **dev** Supabase DB. For production, apply them to the prod DB per the runbook.
