@@ -17,6 +17,7 @@ import {
 } from '@printgrid/pricing';
 import { createOrder, loadRazorpay, openCheckout, pollUntilPaid } from '@/lib/checkout';
 import { parseModel } from '@/lib/parse-model';
+import { analyzeManufacturability } from '@/lib/manufacturability';
 import { validateAddress, type ShippingAddress, type AddressField } from '@/lib/address';
 import { initialState, reducer } from './state';
 
@@ -291,14 +292,9 @@ export function QuotePage() {
                 <div className="quote-files">
                   {state.files.map((row) => {
                     const done = row.parse.status === 'done' ? row.parse.result : null;
-                    const warnings: string[] = [];
-                    if (done) {
-                      if (done.bboxSize.some((d) => d > 256)) warnings.push('Exceeds the 256 mm build envelope — please scale down.');
-                      if (Math.max(...done.bboxSize) < 10) warnings.push('Very small — if this was exported in inches, scale it ×25.4.');
-                      if (done.triangleCount > 250_000) warnings.push('Very high triangle count — the preview is simplified.');
-                      const bboxVol = done.bboxSize[0] * done.bboxSize[1] * done.bboxSize[2];
-                      if (bboxVol > 0 && done.volumeMm3 / bboxVol < 0.002) warnings.push('Mesh may not be watertight — the measured volume looks low. We will flag this before printing.');
-                    }
+                    const warnings = done
+                      ? analyzeManufacturability({ volumeMm3: done.volumeMm3, bboxSize: done.bboxSize, triangleCount: done.triangleCount })
+                      : [];
                     return (
                       <div className="quote-file-card" key={row.id}>
                         <div className="quote-file-card__header">
@@ -310,7 +306,9 @@ export function QuotePage() {
                           {row.parse.status === 'error' && row.parse.message}
                           {done && `${done.triangleCount.toLocaleString()} tris · ${(done.volumeMm3 / 1000).toFixed(1)} cm³ · ${done.bboxSize.map((d) => d.toFixed(0)).join('×')} mm`}
                         </div>
-                        {warnings.map((w, i) => <p className="quote-warning" key={i}>{w}</p>)}
+                        {warnings.map((w) => (
+                          <p className={`quote-warning quote-warning--${w.severity}`} key={w.code}>{w.message}</p>
+                        ))}
 
                         <div className="quote-controls">
                           <label className="quote-row">
