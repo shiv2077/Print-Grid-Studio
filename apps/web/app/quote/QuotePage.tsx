@@ -17,6 +17,7 @@ import {
 } from '@printgrid/pricing';
 import { createOrder, loadRazorpay, openCheckout, pollUntilPaid } from '@/lib/checkout';
 import { parseModel } from '@/lib/parse-model';
+import { analyzeManufacturability } from '@/lib/manufacturability';
 import { validateAddress, type ShippingAddress, type AddressField } from '@/lib/address';
 import { initialState, reducer } from './state';
 
@@ -197,6 +198,38 @@ export function QuotePage() {
     }
   }, [state.files, state.rush, state.appliedPromo, addr]);
 
+  const onDownloadPdf = useCallback(async () => {
+    const files = state.files
+      .map((r) =>
+        r.parse.status === 'done'
+          ? {
+              filename: r.fileName,
+              volumeMm3: r.parse.result.volumeMm3,
+              bboxSize: r.parse.result.bboxSize,
+              triangleCount: r.parse.result.triangleCount,
+              config: r.config,
+            }
+          : null,
+      )
+      .filter(Boolean);
+    if (!files.length) return;
+    const res = await fetch('/api/quote/pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files, rush: state.rush, promo: state.appliedPromo }),
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'printgrid-quote.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [state.files, state.rush, state.appliedPromo]);
+
   const onRemove = useCallback((id: string) => {
     filesRef.current.delete(id);
     parsingRef.current.delete(id);
@@ -273,14 +306,14 @@ export function QuotePage() {
                   type="file"
                   accept=".stl,.obj,.3mf,model/stl,application/octet-stream"
                   multiple
-                  className="hidden"
-                  aria-label="Upload STL files"
+                  className="sr-only"
+                  aria-label="Upload STL, OBJ or 3MF files"
                   onChange={(e) => { acceptFiles(e.target.files ? Array.from(e.target.files) : []); e.target.value = ''; }}
                 />
               </label>
 
               {dropErrors.length > 0 && (
-                <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div role="alert" style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {dropErrors.map((e, i) => (
                     <p className="quote-warning" key={i}>{e}</p>
                   ))}
@@ -291,14 +324,9 @@ export function QuotePage() {
                 <div className="quote-files">
                   {state.files.map((row) => {
                     const done = row.parse.status === 'done' ? row.parse.result : null;
-                    const warnings: string[] = [];
-                    if (done) {
-                      if (done.bboxSize.some((d) => d > 256)) warnings.push('Exceeds the 256 mm build envelope — please scale down.');
-                      if (Math.max(...done.bboxSize) < 10) warnings.push('Very small — if this was exported in inches, scale it ×25.4.');
-                      if (done.triangleCount > 250_000) warnings.push('Very high triangle count — the preview is simplified.');
-                      const bboxVol = done.bboxSize[0] * done.bboxSize[1] * done.bboxSize[2];
-                      if (bboxVol > 0 && done.volumeMm3 / bboxVol < 0.002) warnings.push('Mesh may not be watertight — the measured volume looks low. We will flag this before printing.');
-                    }
+                    const warnings = done
+                      ? analyzeManufacturability({ volumeMm3: done.volumeMm3, bboxSize: done.bboxSize, triangleCount: done.triangleCount })
+                      : [];
                     return (
                       <div className="quote-file-card" key={row.id}>
                         <div className="quote-file-card__header">
@@ -310,7 +338,9 @@ export function QuotePage() {
                           {row.parse.status === 'error' && row.parse.message}
                           {done && `${done.triangleCount.toLocaleString()} tris · ${(done.volumeMm3 / 1000).toFixed(1)} cm³ · ${done.bboxSize.map((d) => d.toFixed(0)).join('×')} mm`}
                         </div>
-                        {warnings.map((w, i) => <p className="quote-warning" key={i}>{w}</p>)}
+                        {warnings.map((w) => (
+                          <p className={`quote-warning quote-warning--${w.severity}`} key={w.code}>{w.message}</p>
+                        ))}
 
                         <div className="quote-controls">
                           <label className="quote-row">
@@ -447,8 +477,13 @@ export function QuotePage() {
                 </button>
                 {blockedReason && <p className="quote-card__caption">{blockedReason}</p>}
                 {result && (
+                  <button type="button" className="btn btn-ghost quote-print-hide" style={{ width: '100%' }} onClick={onDownloadPdf}>
+                    Download PDF report
+                  </button>
+                )}
+                {result && (
                   <button type="button" className="btn btn-ghost quote-print-hide" style={{ width: '100%' }} onClick={() => window.print()}>
-                    Download / print quote
+                    Print quote
                   </button>
                 )}
                 <p className="quote-card__caption">

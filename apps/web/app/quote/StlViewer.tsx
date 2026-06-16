@@ -71,7 +71,7 @@ export function StlViewer({ file, materialKey, triangleCount }: StlViewerProps) 
   const isHighPoly = triangleCount > HIGH_POLY;
 
   return (
-    <div className="quote-viewer">
+    <div className="quote-viewer" role="img" aria-label="3D preview of the uploaded model — drag to rotate, scroll to zoom">
       <span className="quote-viewer__label">3D · preview</span>
       {error ? (
         <div className="quote-viewer__empty">{error}</div>
