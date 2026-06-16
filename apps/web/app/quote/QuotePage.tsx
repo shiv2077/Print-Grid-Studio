@@ -65,11 +65,14 @@ export function QuotePage() {
     const errs: string[] = [];
     const ok: File[] = [];
     const remaining = MAX_FILES - filesRef.current.size;
+    const seen = new Set(Array.from(filesRef.current.values()).map((x) => `${x.name}:${x.size}`));
     for (const f of files) {
+      const sig = `${f.name}:${f.size}`;
       if (ok.length >= remaining) { errs.push(`Only ${MAX_FILES} files per quote — ${f.name} dropped`); continue; }
       if (!/\.(stl|obj|3mf)$/i.test(f.name)) { errs.push(`${f.name}: must be STL, OBJ or 3MF`); continue; }
       if (f.size > MAX_BYTES) { errs.push(`${f.name}: exceeds 100MB`); continue; }
       if (f.size === 0) { errs.push(`${f.name}: file is empty`); continue; }
+      if (seen.has(sig) || ok.some((o) => `${o.name}:${o.size}` === sig)) { errs.push(`${f.name}: already added — skipped duplicate`); continue; }
       ok.push(f);
     }
     setDropErrors(errs);
@@ -227,7 +230,7 @@ export function QuotePage() {
 
           <div className="quote-grid">
             {/* Left: upload + per-file controls */}
-            <div className="quote-col">
+            <div className="quote-col quote-col--left">
               {activeRow && activeRow.parse.status === 'done' && activeFile && (
                 <StlViewer
                   file={activeFile}
@@ -266,7 +269,14 @@ export function QuotePage() {
                 <div className="quote-files">
                   {state.files.map((row) => {
                     const done = row.parse.status === 'done' ? row.parse.result : null;
-                    const oversized = done?.bboxSize.some((d) => d > 256) ?? false;
+                    const warnings: string[] = [];
+                    if (done) {
+                      if (done.bboxSize.some((d) => d > 256)) warnings.push('Exceeds the 256 mm build envelope — please scale down.');
+                      if (Math.max(...done.bboxSize) < 10) warnings.push('Very small — if this was exported in inches, scale it ×25.4.');
+                      if (done.triangleCount > 250_000) warnings.push('Very high triangle count — the preview is simplified.');
+                      const bboxVol = done.bboxSize[0] * done.bboxSize[1] * done.bboxSize[2];
+                      if (bboxVol > 0 && done.volumeMm3 / bboxVol < 0.002) warnings.push('Mesh may not be watertight — the measured volume looks low. We will flag this before printing.');
+                    }
                     return (
                       <div className="quote-file-card" key={row.id}>
                         <div className="quote-file-card__header">
@@ -278,7 +288,7 @@ export function QuotePage() {
                           {row.parse.status === 'error' && row.parse.message}
                           {done && `${done.triangleCount.toLocaleString()} tris · ${(done.volumeMm3 / 1000).toFixed(1)} cm³ · ${done.bboxSize.map((d) => d.toFixed(0)).join('×')} mm`}
                         </div>
-                        {oversized && <p className="quote-warning">Exceeds the 256 mm build envelope — please scale down.</p>}
+                        {warnings.map((w, i) => <p className="quote-warning" key={i}>{w}</p>)}
 
                         <div className="quote-controls">
                           <label className="quote-row">
@@ -340,6 +350,10 @@ export function QuotePage() {
             {/* Right: price card */}
             <div className="quote-col quote-col--right">
               <div className="quote-card">
+                <div className="quote-print-only">
+                  <strong>PrintGrid Studio — Quote</strong>
+                  <div className="mono" style={{ fontSize: 12, color: 'var(--ink-60)' }}>FDM 3D printing · Chennai · printgrid.co.in</div>
+                </div>
                 <div className="quote-card__total-headline">{result ? formatINR(result.grandTotalPaise) : '—'}</div>
                 <div className="quote-card__total-caption">Total · incl. GST</div>
 
@@ -390,6 +404,11 @@ export function QuotePage() {
                   {busy ? 'Working…' : 'Continue to payment'}
                 </button>
                 {blockedReason && <p className="quote-card__caption">{blockedReason}</p>}
+                {result && (
+                  <button type="button" className="btn btn-ghost quote-print-hide" style={{ width: '100%' }} onClick={() => window.print()}>
+                    Download / print quote
+                  </button>
+                )}
                 <p className="quote-card__caption">
                   The charged amount is recomputed on our server from the file&rsquo;s true volume.
                 </p>

@@ -332,3 +332,18 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .page-head .wrap { padding-top: 48px; padding-bottom: 48px; }
   .section .wrap { padding-top: 56px; padding-bottom: 56px; }
 }
+
+/* ---------- Print: a clean quote sheet ---------- */
+.quote-print-only { display: none; }
+@media print {
+  .status-strip, .site-header, .site-footer, .page-head,
+  .quote-col--left, .quote-viewer, .checkout-banner, .quote-cta,
+  .quote-print-hide { display: none !important; }
+  html, body { background: #fff !important; color: #000 !important; }
+  .quote .wrap { padding: 0; max-width: 100%; }
+  .quote-grid { display: block; }
+  .quote-col--right { position: static; }
+  .quote-card { border: 0; padding: 0; }
+  .quote-print-only { display: block; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #000; }
+  .quote-card__caption { display: none; }
+}
