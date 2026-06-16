@@ -3,11 +3,11 @@ import { meshVolumeMm3 } from '../lib/server/mesh-volume';
 import { computeMass, quote } from '@printgrid/pricing';
 
 function binaryCube(s: number): Buffer {
-  const v = [
+  const v: [number, number, number][] = [
     [0, 0, 0], [s, 0, 0], [s, s, 0], [0, s, 0],
     [0, 0, s], [s, 0, s], [s, s, s], [0, s, s],
   ];
-  const tris = [
+  const tris: [number, number, number][] = [
     [0, 2, 1], [0, 3, 2], [4, 5, 6], [4, 6, 7],
     [0, 1, 5], [0, 5, 4], [3, 7, 6], [3, 6, 2],
     [0, 4, 7], [0, 7, 3], [1, 2, 6], [1, 6, 5],
@@ -15,12 +15,13 @@ function binaryCube(s: number): Buffer {
   const buf = Buffer.alloc(84 + tris.length * 50);
   buf.writeUInt32LE(tris.length, 80);
   let off = 84;
-  for (const [a, b, c] of tris) {
+  for (const tri of tris) {
     off += 12;
-    for (const idx of [a, b, c]) {
-      buf.writeFloatLE(v[idx]![0]!, off);
-      buf.writeFloatLE(v[idx]![1]!, off + 4);
-      buf.writeFloatLE(v[idx]![2]!, off + 8);
+    for (const idx of tri) {
+      const vert = v[idx]!;
+      buf.writeFloatLE(vert[0], off);
+      buf.writeFloatLE(vert[1], off + 4);
+      buf.writeFloatLE(vert[2], off + 8);
       off += 12;
     }
     off += 2;
