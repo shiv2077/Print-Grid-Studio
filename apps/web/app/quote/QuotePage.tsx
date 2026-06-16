@@ -198,6 +198,38 @@ export function QuotePage() {
     }
   }, [state.files, state.rush, state.appliedPromo, addr]);
 
+  const onDownloadPdf = useCallback(async () => {
+    const files = state.files
+      .map((r) =>
+        r.parse.status === 'done'
+          ? {
+              filename: r.fileName,
+              volumeMm3: r.parse.result.volumeMm3,
+              bboxSize: r.parse.result.bboxSize,
+              triangleCount: r.parse.result.triangleCount,
+              config: r.config,
+            }
+          : null,
+      )
+      .filter(Boolean);
+    if (!files.length) return;
+    const res = await fetch('/api/quote/pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files, rush: state.rush, promo: state.appliedPromo }),
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'printgrid-quote.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [state.files, state.rush, state.appliedPromo]);
+
   const onRemove = useCallback((id: string) => {
     filesRef.current.delete(id);
     parsingRef.current.delete(id);
@@ -445,8 +477,13 @@ export function QuotePage() {
                 </button>
                 {blockedReason && <p className="quote-card__caption">{blockedReason}</p>}
                 {result && (
+                  <button type="button" className="btn btn-ghost quote-print-hide" style={{ width: '100%' }} onClick={onDownloadPdf}>
+                    Download PDF report
+                  </button>
+                )}
+                {result && (
                   <button type="button" className="btn btn-ghost quote-print-hide" style={{ width: '100%' }} onClick={() => window.print()}>
-                    Download / print quote
+                    Print quote
                   </button>
                 )}
                 <p className="quote-card__caption">
