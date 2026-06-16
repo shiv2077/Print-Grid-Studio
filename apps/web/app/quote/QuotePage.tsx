@@ -1,16 +1,21 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { Container } from '@/components/ui/Container';
 import { useStlParser } from '@/lib/use-stl-parser';
-import { quote, formatINR, type FileInput, type QuoteResult } from '@printgrid/pricing';
-import { computeMass } from '@printgrid/pricing';
+import {
+  quote,
+  computeMass,
+  formatINR,
+  MATERIALS,
+  FINISHES,
+  type FileInput,
+  type QuoteResult,
+  type MaterialKey,
+  type LayerHeight,
+  type Finish,
+} from '@printgrid/pricing';
 import { createOrder, loadRazorpay, openCheckout, pollUntilPaid } from '@/lib/checkout';
-import { Dropzone } from './Dropzone';
-import { FileCard } from './FileCard';
-import { PriceBreakdown } from './PriceBreakdown';
 import { initialState, reducer } from './state';
-import styles from './quote.module.css';
 
 type CheckoutState =
   | { phase: 'idle' }
@@ -20,73 +25,74 @@ type CheckoutState =
   | { phase: 'paid'; code: string }
   | { phase: 'error'; message: string };
 
+const MATERIAL_KEYS: MaterialKey[] = ['pla-plus', 'pla-lw', 'petg', 'abs', 'tpu-95a', 'pa6', 'pa-cf'];
+const LAYER_HEIGHTS: LayerHeight[] = ['0.12', '0.16', '0.20', '0.24', '0.28'];
+const FINISH_KEYS = Object.keys(FINISHES) as Finish[];
+const FINISH_LABELS: Record<Finish, string> = {
+  'as-printed': 'As printed',
+  sanded: 'Sanded',
+  primer: 'Primer',
+  gloss: 'Gloss',
+};
+
+const MAX_FILES = 10;
+const MAX_BYTES = 100 * 1024 * 1024;
+
 let idCounter = 0;
 const nextId = () => `f${++idCounter}-${Date.now().toString(36)}`;
 
 export function QuotePage() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { parse } = useStlParser();
-  // Raw File objects kept in a ref keyed by row id — we keep these out
-  // of reducer state so the state stays serializable + cheap to compare.
   const filesRef = useRef<Map<string, File>>(new Map());
-  // Track which IDs we've already kicked off a parse for, to avoid
-  // parsing twice on a re-run of the effect.
   const parsingRef = useRef<Set<string>>(new Set());
+  const [dropActive, setDropActive] = useState(false);
+  const [dropErrors, setDropErrors] = useState<string[]>([]);
 
-  const onAcceptFiles = useCallback(
-    (files: File[]) => {
-      const additions = files.map((file) => {
+  const acceptFiles = useCallback((files: File[]) => {
+    const errs: string[] = [];
+    const ok: File[] = [];
+    const remaining = MAX_FILES - filesRef.current.size;
+    for (const f of files) {
+      if (ok.length >= remaining) { errs.push(`Only ${MAX_FILES} files per quote — ${f.name} dropped`); continue; }
+      if (!/\.stl$/i.test(f.name)) { errs.push(`${f.name}: not an STL file`); continue; }
+      if (f.size > MAX_BYTES) { errs.push(`${f.name}: exceeds 100MB`); continue; }
+      if (f.size === 0) { errs.push(`${f.name}: file is empty`); continue; }
+      ok.push(f);
+    }
+    setDropErrors(errs);
+    if (ok.length) {
+      const additions = ok.map((file) => {
         const id = nextId();
         filesRef.current.set(id, file);
         return { id, file };
       });
       dispatch({ type: 'ADD_FILES', payload: additions });
-    },
-    []
-  );
+    }
+  }, []);
 
-  // Kick off parses for any rows that are still 'parsing' and haven't
-  // been queued yet. The hook serialises calls internally, so order is
-  // FIFO across multiple drops.
+  // Parse newly-added rows (the hook serialises internally).
   useEffect(() => {
     state.files.forEach((row) => {
-      if (row.parse.status !== 'parsing') return;
-      if (parsingRef.current.has(row.id)) return;
+      if (row.parse.status !== 'parsing' || parsingRef.current.has(row.id)) return;
       const file = filesRef.current.get(row.id);
       if (!file) return;
       parsingRef.current.add(row.id);
       parse(file)
-        .then((result) => {
-          dispatch({ type: 'FILE_PARSED', id: row.id, result });
-        })
-        .catch((err: { message?: string } | Error) => {
-          const message =
-            typeof err === 'object' && err && 'message' in err
-              ? String((err as { message?: string }).message ?? 'Parse failed')
-              : 'Parse failed';
-          dispatch({ type: 'FILE_PARSE_ERROR', id: row.id, message });
-        });
+        .then((result) => dispatch({ type: 'FILE_PARSED', id: row.id, result }))
+        .catch((err: { message?: string }) =>
+          dispatch({ type: 'FILE_PARSE_ERROR', id: row.id, message: String(err?.message ?? 'Parse failed') }),
+        );
     });
   }, [state.files, parse]);
 
-  // Build the pricing input from parsed files only.
   const result: QuoteResult | null = useMemo(() => {
-    const parsed = state.files.filter(
-      (f) => f.parse.status === 'done'
-    );
+    const parsed = state.files.filter((f) => f.parse.status === 'done');
     if (parsed.length === 0) return null;
     const fileInputs: FileInput[] = parsed.map((row) => {
-      // status narrowed by filter
-      if (row.parse.status !== 'done') {
-        // unreachable but TS needs the guard
-        throw new Error('unreachable');
-      }
-      const massGrams = computeMass(
-        row.parse.result.volumeMm3,
-        row.config.materialKey
-      );
+      if (row.parse.status !== 'done') throw new Error('unreachable');
       return {
-        massGrams,
+        massGrams: computeMass(row.parse.result.volumeMm3, row.config.materialKey),
         materialKey: row.config.materialKey,
         layerHeight: row.config.layerHeight,
         finish: row.config.finish,
@@ -95,65 +101,32 @@ export function QuotePage() {
       };
     });
     try {
-      return quote({
-        files: fileInputs,
-        rush: state.rush,
-        promo: state.appliedPromo,
-      });
+      return quote({ files: fileInputs, rush: state.rush, promo: state.appliedPromo });
     } catch {
       return null;
     }
   }, [state.files, state.rush, state.appliedPromo]);
 
-  // Continue button gating
   const { canContinue, blockedReason } = useMemo(() => {
-    if (state.files.length === 0) {
-      return { canContinue: false, blockedReason: null };
-    }
-    const parsing = state.files.find((f) => f.parse.status === 'parsing');
-    if (parsing) {
-      return {
-        canContinue: false,
-        blockedReason: 'Wait for parsing to finish.',
-      };
-    }
-    const errored = state.files.find((f) => f.parse.status === 'error');
-    if (errored) {
-      return {
-        canContinue: false,
-        blockedReason: 'One or more files failed to parse.',
-      };
-    }
-    const oversized = state.files.find((f) => {
-      if (f.parse.status !== 'done') return false;
-      const [x, y, z] = f.parse.result.bboxSize;
-      return x > 256 || y > 256 || z > 256;
-    });
-    if (oversized) {
-      return {
-        canContinue: false,
-        blockedReason: 'Resolve build-envelope warnings before continuing.',
-      };
-    }
+    if (state.files.length === 0) return { canContinue: false, blockedReason: null };
+    if (state.files.find((f) => f.parse.status === 'parsing'))
+      return { canContinue: false, blockedReason: 'Wait for parsing to finish.' };
+    if (state.files.find((f) => f.parse.status === 'error'))
+      return { canContinue: false, blockedReason: 'One or more files failed to parse.' };
+    const oversized = state.files.find(
+      (f) => f.parse.status === 'done' && f.parse.result.bboxSize.some((d) => d > 256),
+    );
+    if (oversized) return { canContinue: false, blockedReason: 'A part exceeds the 256mm build envelope.' };
     return { canContinue: true, blockedReason: null };
   }, [state.files]);
 
   const [checkout, setCheckout] = useState<CheckoutState>({ phase: 'idle' });
-  const busy =
-    checkout.phase === 'creating' ||
-    checkout.phase === 'awaiting' ||
-    checkout.phase === 'confirming';
+  const busy = checkout.phase === 'creating' || checkout.phase === 'awaiting' || checkout.phase === 'confirming';
 
   const onContinue = useCallback(async () => {
     const doneFiles = state.files.filter((f) => f.parse.status === 'done');
-    // M2 checkout creates one order per file; multi-file orders are a later phase.
-    // Submitting only one file would mismatch the displayed multi-file total, so
-    // we block it rather than charge a wrong amount.
     if (doneFiles.length !== 1) {
-      setCheckout({
-        phase: 'error',
-        message: 'Checkout currently supports a single file per order. Multi-file orders are coming soon.',
-      });
+      setCheckout({ phase: 'error', message: 'Checkout currently supports a single file per order. Multi-file orders are coming soon.' });
       return;
     }
     const row = doneFiles[0];
@@ -162,28 +135,19 @@ export function QuotePage() {
       setCheckout({ phase: 'error', message: 'Could not read the uploaded file. Please re-add it.' });
       return;
     }
-
     setCheckout({ phase: 'creating' });
     try {
       // The SERVER reprices from its own volume measurement; we send no amount.
-      const order = await createOrder(file, row.config, {
-        rush: state.rush,
-        promo: state.appliedPromo,
-      });
+      const order = await createOrder(file, row.config, { rush: state.rush, promo: state.appliedPromo });
       await loadRazorpay();
       setCheckout({ phase: 'awaiting' });
       openCheckout({
         order,
         onSuccess: async () => {
-          // NOT paid yet — the browser cannot self-confirm. Poll the server,
-          // which flips to `paid` only after the signature-verified webhook.
+          // The browser cannot self-confirm — poll until the verified webhook flips it.
           setCheckout({ phase: 'confirming', code: order.order_code });
           const outcome = await pollUntilPaid(order.order_code);
-          setCheckout(
-            outcome === 'paid'
-              ? { phase: 'paid', code: order.order_code }
-              : { phase: 'confirming', code: order.order_code },
-          );
+          setCheckout(outcome === 'paid' ? { phase: 'paid', code: order.order_code } : { phase: 'confirming', code: order.order_code });
         },
         onDismiss: () => setCheckout({ phase: 'idle' }),
       });
@@ -198,142 +162,217 @@ export function QuotePage() {
     dispatch({ type: 'REMOVE_FILE', id });
   }, []);
 
+  const fileCount = state.files.filter((f) => f.parse.status === 'done').length;
+
   return (
-    <Container>
-      <div className={styles.intro}>
-        <p className={`h-eyebrow ${styles.eyebrow}`}>QUOTE · LIVE CALCULATOR</p>
-        <h1 className={`display ${styles.heroHeadline}`}>Drop a file. See a price.</h1>
-        <p className={`lede ${styles.heroLede}`}>
-          STLs are parsed in your browser via Web Worker. Nothing leaves
-          this device until you click checkout. The number on the right
-          is the number you pay — including 18% GST and 2% payment
-          processing.
-        </p>
-      </div>
-
-      {checkout.phase !== 'idle' && (
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            margin: '0 0 1.5rem',
-            padding: '0.85rem 1.1rem',
-            borderRadius: 12,
-            border: '1px solid rgba(255,255,255,0.14)',
-            background:
-              checkout.phase === 'paid'
-                ? 'rgba(34,197,94,0.12)'
-                : checkout.phase === 'error'
-                  ? 'rgba(239,68,68,0.12)'
-                  : 'rgba(255,255,255,0.06)',
-            fontSize: '0.95rem',
-            lineHeight: 1.5,
-          }}
-        >
-          {checkout.phase === 'creating' && 'Creating your order…'}
-          {checkout.phase === 'awaiting' && 'Opening the secure Razorpay window…'}
-          {checkout.phase === 'confirming' && (
-            <>
-              <strong>Payment received — confirming with our server.</strong> Your order isn’t marked
-              paid until we verify the payment. This updates automatically (order {checkout.code}).
-            </>
-          )}
-          {checkout.phase === 'paid' && (
-            <>
-              <strong>Paid ✓</strong> Order {checkout.code} is confirmed. A confirmation email is on
-              its way.
-            </>
-          )}
-          {checkout.phase === 'error' && <>Checkout error: {checkout.message}</>}
+    <>
+      <section className="page-head">
+        <div className="wrap">
+          <div className="eyebrow page-head__eyebrow">Quote · live calculator</div>
+          <h1 className="display-2">Drop a file. See a price.</h1>
+          <p className="lede">
+            STLs are parsed in your browser. Nothing leaves your device until you check out. The
+            number on the right is the number you pay — including 18% GST and the 2% payment fee.
+          </p>
         </div>
-      )}
+      </section>
 
-      <div className={styles.layout}>
-        <div className={styles.left}>
-          <Dropzone
-            existingCount={state.files.length}
-            onAccept={onAcceptFiles}
-          />
-          {state.files.length > 0 && (
-            <div className={styles.fileList}>
-              {(() => {
-                // Precompute id -> lineSubtotal map once per render so
-                // each FileCard lookup is O(1) instead of O(n) per row.
-                const subtotalById = new Map<string, number>();
-                if (result) {
-                  let liIdx = 0;
-                  for (const f of state.files) {
-                    if (f.parse.status !== 'done') continue;
-                    const li = result.lineItems[liIdx];
-                    if (li) subtotalById.set(f.id, li.lineSubtotalPaise);
-                    liIdx++;
-                  }
-                }
-                return state.files.map((row, i) => {
-                  const file = filesRef.current.get(row.id);
-                  if (!file) return null;
-                  const lineSubtotalPaise = subtotalById.get(row.id) ?? null;
-                  return (
-                  <FileCard
-                    key={row.id}
-                    index={i}
-                    row={row}
-                    file={file}
-                    onUpdateConfig={(patch) =>
-                      dispatch({ type: 'UPDATE_CONFIG', id: row.id, patch })
-                    }
-                    onRemove={() => onRemove(row.id)}
-                    lineSubtotalPaise={lineSubtotalPaise}
-                  />
-                  );
-                });
-              })()}
-            </div>
-          )}
-        </div>
-
-        <div className={styles.right}>
-          <PriceBreakdown
-            result={result}
-            fileCount={state.files.filter((f) => f.parse.status === 'done').length}
-            rush={state.rush}
-            onToggleRush={() => dispatch({ type: 'TOGGLE_RUSH' })}
-            promoInput={state.promoInput}
-            onPromoInputChange={(value) =>
-              dispatch({ type: 'SET_PROMO_INPUT', value })
-            }
-            appliedPromo={state.appliedPromo}
-            promoError={state.promoError}
-            onApplyPromo={() => dispatch({ type: 'APPLY_PROMO' })}
-            onClearPromo={() => dispatch({ type: 'CLEAR_PROMO' })}
-            canContinue={canContinue && !busy}
-            onContinue={onContinue}
-            blockedReason={blockedReason}
-          />
-        </div>
-      </div>
-
-      {result && (
-        <div className={styles.mobileDock}>
-          <div className={styles.mobileDockInner}>
-            <div className={styles.mobileDockTotal}>
-              <span className={styles.mobileDockLabel}>Total · incl. GST</span>
-              <span className={styles.mobileDockValue}>
-                {formatINR(result.grandTotalPaise)}
-              </span>
-            </div>
-            <button
-              type="button"
-              className={styles.mobileDockCta}
-              onClick={onContinue}
-              disabled={!canContinue || busy}
+      <section className="quote">
+        <div className="wrap">
+          {checkout.phase !== 'idle' && (
+            <div
+              role="status"
+              aria-live="polite"
+              className={
+                'checkout-banner' +
+                (checkout.phase === 'paid' ? ' checkout-banner--paid' : '') +
+                (checkout.phase === 'error' ? ' checkout-banner--error' : '')
+              }
             >
-              Continue →
-            </button>
+              {checkout.phase === 'creating' && 'Creating your order…'}
+              {checkout.phase === 'awaiting' && 'Opening the secure Razorpay window…'}
+              {checkout.phase === 'confirming' && (
+                <>
+                  <strong>Payment received — confirming with our server.</strong> Your order isn&rsquo;t
+                  marked paid until we verify it. This updates automatically (order {checkout.code}).
+                </>
+              )}
+              {checkout.phase === 'paid' && (
+                <>
+                  <strong>Paid ✓</strong> Order {checkout.code} is confirmed — a confirmation email is
+                  on its way.
+                </>
+              )}
+              {checkout.phase === 'error' && <>Checkout error: {checkout.message}</>}
+            </div>
+          )}
+
+          <div className="quote-grid">
+            {/* Left: upload + per-file controls */}
+            <div className="quote-col">
+              <label
+                className={'quote-dropzone' + (dropActive ? ' is-over' : '')}
+                onDrop={(e) => { e.preventDefault(); setDropActive(false); acceptFiles(Array.from(e.dataTransfer.files)); }}
+                onDragOver={(e) => { e.preventDefault(); setDropActive(true); }}
+                onDragLeave={(e) => { e.preventDefault(); setDropActive(false); }}
+              >
+                <p className="quote-dropzone__title">Drop one or more STLs here</p>
+                <p className="quote-dropzone__sub">Or click to browse</p>
+                <p className="quote-dropzone__hint mono">Max 100 MB each · up to 10 files</p>
+                <input
+                  type="file"
+                  accept=".stl,model/stl,application/octet-stream"
+                  multiple
+                  className="hidden"
+                  aria-label="Upload STL files"
+                  onChange={(e) => { acceptFiles(e.target.files ? Array.from(e.target.files) : []); e.target.value = ''; }}
+                />
+              </label>
+
+              {dropErrors.length > 0 && (
+                <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {dropErrors.map((e, i) => (
+                    <p className="quote-warning" key={i}>{e}</p>
+                  ))}
+                </div>
+              )}
+
+              {state.files.length > 0 && (
+                <div className="quote-files">
+                  {state.files.map((row) => {
+                    const done = row.parse.status === 'done' ? row.parse.result : null;
+                    const oversized = done?.bboxSize.some((d) => d > 256) ?? false;
+                    return (
+                      <div className="quote-file-card" key={row.id}>
+                        <div className="quote-file-card__header">
+                          <span className="quote-file-card__name">{row.fileName}</span>
+                          <button className="quote-file__remove" type="button" aria-label="Remove file" onClick={() => onRemove(row.id)}>×</button>
+                        </div>
+                        <div className="quote-file-card__stats mono">
+                          {row.parse.status === 'parsing' && 'Parsing…'}
+                          {row.parse.status === 'error' && row.parse.message}
+                          {done && `${done.triangleCount.toLocaleString()} tris · ${(done.volumeMm3 / 1000).toFixed(1)} cm³ · ${done.bboxSize.map((d) => d.toFixed(0)).join('×')} mm`}
+                        </div>
+                        {oversized && <p className="quote-warning">Exceeds the 256 mm build envelope — please scale down.</p>}
+
+                        <div className="quote-controls">
+                          <label className="quote-row">
+                            <span className="quote-row__label">Material</span>
+                            <select
+                              value={row.config.materialKey}
+                              onChange={(e) => dispatch({ type: 'UPDATE_CONFIG', id: row.id, patch: { materialKey: e.target.value as MaterialKey } })}
+                            >
+                              {MATERIAL_KEYS.map((k) => (
+                                <option key={k} value={k}>{MATERIALS[k].name} · {formatINR(MATERIALS[k].ratePerGramPaise)}/g</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="quote-row">
+                            <span className="quote-row__label">Layer height</span>
+                            <select
+                              value={row.config.layerHeight}
+                              onChange={(e) => dispatch({ type: 'UPDATE_CONFIG', id: row.id, patch: { layerHeight: e.target.value as LayerHeight } })}
+                            >
+                              {LAYER_HEIGHTS.map((h) => <option key={h} value={h}>{h} mm</option>)}
+                            </select>
+                          </label>
+                          <label className="quote-row">
+                            <span className="quote-row__label">Finish</span>
+                            <select
+                              value={row.config.finish}
+                              onChange={(e) => dispatch({ type: 'UPDATE_CONFIG', id: row.id, patch: { finish: e.target.value as Finish } })}
+                            >
+                              {FINISH_KEYS.map((f) => (
+                                <option key={f} value={f}>{FINISH_LABELS[f]}{FINISHES[f] ? ` · +${formatINR(FINISHES[f])}` : ''}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="quote-row">
+                            <span className="quote-row__label">Quantity</span>
+                            <input
+                              type="number"
+                              min={1}
+                              value={row.config.qty}
+                              onChange={(e) => dispatch({ type: 'UPDATE_CONFIG', id: row.id, patch: { qty: Math.max(1, parseInt(e.target.value, 10) || 1) } })}
+                            />
+                          </label>
+                        </div>
+                        <label className="quote-row quote-row--check">
+                          <input
+                            type="checkbox"
+                            checked={row.config.multicolor}
+                            onChange={(e) => dispatch({ type: 'UPDATE_CONFIG', id: row.id, patch: { multicolor: e.target.checked } })}
+                          />
+                          <span>Multi-colour (+20%)</span>
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Right: price card */}
+            <div className="quote-col quote-col--right">
+              <div className="quote-card">
+                <div className="quote-card__total-headline">{result ? formatINR(result.grandTotalPaise) : '—'}</div>
+                <div className="quote-card__total-caption">Total · incl. GST</div>
+
+                {!result && <p className="quote-card__empty">Upload an STL to see your price.</p>}
+
+                {result && (
+                  <>
+                    <div className="quote-card__line">
+                      <div className="quote-row-line"><span>Subtotal ({fileCount} file{fileCount === 1 ? '' : 's'})</span><span className="mono">{formatINR(result.subtotalPaise)}</span></div>
+                      {result.rushFeePaise > 0 && <div className="quote-row-line"><span>Rush (+25%)</span><span className="mono">{formatINR(result.rushFeePaise)}</span></div>}
+                      {result.promoDiscountPaise > 0 && <div className="quote-row-line quote-row-line--discount"><span>Promo {result.appliedPromo}</span><span className="mono">−{formatINR(result.promoDiscountPaise)}</span></div>}
+                      <div className="quote-row-line"><span>Shipping</span><span className="mono">{result.shippingPaise === 0 ? 'Free' : formatINR(result.shippingPaise)}</span></div>
+                      <div className="quote-row-line"><span>GST (18%)</span><span className="mono">{formatINR(result.gstTotalPaise)}</span></div>
+                      <div className="quote-row-line"><span>Payment fee (2%)</span><span className="mono">{formatINR(result.paymentFeePaise)}</span></div>
+                    </div>
+                    <div className="quote-card__line">
+                      <div className="quote-row-line quote-row-line--strong"><span>Total</span><span className="mono">{formatINR(result.grandTotalPaise)}</span></div>
+                    </div>
+                  </>
+                )}
+
+                <label className="quote-row quote-row--check" style={{ marginTop: 8 }}>
+                  <input type="checkbox" checked={state.rush} onChange={() => dispatch({ type: 'TOGGLE_RUSH' })} />
+                  <span>Rush — print first (+25%)</span>
+                </label>
+
+                <div className="quote-row">
+                  <span className="quote-row__label">Promo code</span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="text"
+                      value={state.promoInput}
+                      placeholder="FIRSTPRINT"
+                      onChange={(e) => dispatch({ type: 'SET_PROMO_INPUT', value: e.target.value })}
+                      style={{ textTransform: 'uppercase' }}
+                    />
+                    {state.appliedPromo ? (
+                      <button type="button" className="btn btn-ghost" onClick={() => dispatch({ type: 'CLEAR_PROMO' })}>Clear</button>
+                    ) : (
+                      <button type="button" className="btn btn-ghost" onClick={() => dispatch({ type: 'APPLY_PROMO' })}>Apply</button>
+                    )}
+                  </div>
+                  {state.promoError && <p className="quote-warning" style={{ marginTop: 6 }}>{state.promoError}</p>}
+                  {state.appliedPromo && <p className="quote-card__caption mono" style={{ marginTop: 6 }}>{state.appliedPromo} applied</p>}
+                </div>
+
+                <button type="button" className="btn btn-primary quote-cta" onClick={onContinue} disabled={!canContinue || busy}>
+                  {busy ? 'Working…' : 'Continue to payment'}
+                </button>
+                {blockedReason && <p className="quote-card__caption">{blockedReason}</p>}
+                <p className="quote-card__caption">
+                  The charged amount is recomputed on our server from the file&rsquo;s true volume.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      )}
-    </Container>
+      </section>
+    </>
   );
 }
-
