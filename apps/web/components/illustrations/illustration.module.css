@@ -1,9 +1,0 @@
-/* Shared root styles for inline-SVG illustrations.
-   Width fills the parent; aspect-ratio preserved by the SVG viewBox.
-   Consumers cap with a parent .diagram { max-width: ... } per section. */
-
-.svgRoot {
-  width: 100%;
-  height: auto;
-  display: block;
-}

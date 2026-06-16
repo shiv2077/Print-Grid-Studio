@@ -15,8 +15,6 @@
     "test": "pnpm -r test",
     "build:pricing": "pnpm --filter @printgrid/pricing build",
     "build:web": "pnpm --filter @printgrid/pricing build && pnpm --filter web build",
-    "build:api": "pnpm --filter @printgrid/pricing build && pnpm --filter api build",
-    "dev:web": "pnpm --filter web dev",
-    "dev:api": "pnpm --filter api start:dev"
+    "dev:web": "pnpm --filter web dev"
   }
 }

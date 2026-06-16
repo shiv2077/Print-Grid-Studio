@@ -1,23 +1,25 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
 
-// Reuse one client across warm lambdas / dev hot-reloads.
 declare global {
   // eslint-disable-next-line no-var
-  var __pgClient: ReturnType<typeof postgres> | undefined;
+  var __pgDb: PostgresJsDatabase<typeof schema> | undefined;
 }
 
-function makeClient() {
+/**
+ * Lazily create one Drizzle instance, reused across warm lambdas / hot reloads.
+ * Lazy so importing the repo (e.g. in tests, or at Next build) never needs the
+ * DB connection — it's only created on first real query.
+ * prepare:false is required for the Supabase transaction pooler (pgbouncer).
+ */
+export function getDb(): PostgresJsDatabase<typeof schema> {
+  if (global.__pgDb) return global.__pgDb;
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error('DATABASE_URL is not set');
-  // prepare:false is required for the Supabase transaction pooler (pgbouncer);
-  // it is also harmless on a direct connection. ssl required.
-  return postgres(url, { ssl: 'require', prepare: false, max: 1 });
+  const client = postgres(url, { ssl: 'require', prepare: false, max: 1 });
+  global.__pgDb = drizzle(client, { schema });
+  return global.__pgDb;
 }
 
-const client = global.__pgClient ?? makeClient();
-if (process.env.NODE_ENV !== 'production') global.__pgClient = client;
-
-export const db = drizzle(client, { schema });
 export { schema };
