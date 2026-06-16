@@ -1,115 +1,133 @@
 import type { Metadata } from 'next';
-import { MaterialsHero } from './MaterialsHero';
-import { MaterialSection } from './MaterialSection';
 
 export const metadata: Metadata = {
   title: 'Materials',
-  description:
-    'Seven filaments stocked at PrintGrid Studio: PLA+, PLA LW, PETG, ABS, TPU 95A, PA6, PA-CF. Manufacturer datasheet specs, no inflation.',
+  description: 'Seven FDM materials kept in stock — PLA+, PLA LW, PETG, ABS, TPU 95A, PA6, PA-CF.',
 };
 
-const ENTRIES = [
+interface Material {
+  name: string;
+  rate: string;
+  use: string;
+  specs: { label: string; value: string }[];
+}
+
+const MATERIALS: Material[] = [
   {
-    materialKey: 'pla-plus' as const,
-    body:
-      "Our default. PLA+ prints clean, holds tolerance well, and looks " +
-      "good with no post-processing. Stiffer and tougher than the " +
-      "Bambu basic PLA — closer to PETG without the stringing. Indoor " +
-      "use only: it loses strength above 60°C, so don't leave a part " +
-      "in a parked car at noon.",
-    layerRange: '0.12 – 0.28 mm · default 0.20',
-    walls: '3 (default)',
-    recommendedFor: 'Prototypes · indoor brackets · enclosures',
-    titleBlock: 'PG-MAT-PLA-PLUS',
+    name: 'PLA+',
+    rate: '₹4.50 / g',
+    use: 'Drone frames, brackets, and mechanical mounts. Tougher than PLA without ABS warping or fumes.',
+    specs: [
+      { label: 'Density', value: '1.24 g/cm³' },
+      { label: 'Tensile', value: '65 MPa' },
+      { label: 'Max temp', value: '60 °C' },
+      { label: 'Layer heights', value: '0.12–0.28 mm' },
+    ],
   },
   {
-    materialKey: 'pla-lw' as const,
-    body:
-      "Foaming PLA. The filament expands during printing, dropping the " +
-      "effective density to about half of standard PLA. Drone-frame " +
-      "favorite — same volume, almost half the mass. Slower print speed " +
-      "and slightly fuzzier surface than PLA+, so it's not the right " +
-      "choice for a part where finish matters more than weight.",
-    layerRange: '0.16 – 0.24 mm · default 0.20',
-    walls: '2 – 3',
-    recommendedFor: 'Drone bodies · RC props · flight components',
-    titleBlock: 'PG-MAT-PLA-LW',
+    name: 'PLA LW',
+    rate: '₹18.00 / g',
+    use: 'RC/UAV airframe parts. Foaming PLA expands during print — extreme weight savings at the cost of brittleness.',
+    specs: [
+      { label: 'Density', value: '0.65 g/cm³ eff.' },
+      { label: 'Tensile', value: '35 MPa' },
+      { label: 'Max temp', value: '55 °C' },
+      { label: 'Layer heights', value: '0.12–0.28 mm' },
+    ],
   },
   {
-    materialKey: 'petg' as const,
-    body:
-      "Tougher than PLA, more flexible, less brittle. Survives outdoor " +
-      "use up to 75°C and shrugs off mild chemicals — kitchen-adjacent, " +
-      "garden-adjacent. Easier to print than ABS but the layer adhesion " +
-      "is fussy, so we run it slower with active cooling tuned per " +
-      "geometry. Slight surface haze is normal for PETG; sand or prime " +
-      "if you need a perfect finish.",
-    layerRange: '0.12 – 0.28 mm · default 0.20',
-    walls: '3',
-    recommendedFor: 'Outdoor parts · tool handles · food-adjacent',
-    titleBlock: 'PG-MAT-PETG',
+    name: 'PETG',
+    rate: '₹5.00 / g',
+    use: 'Outdoor housings, electronics enclosures, and parts that see sun, rain, or warm engine-bay temperatures.',
+    specs: [
+      { label: 'Density', value: '1.27 g/cm³' },
+      { label: 'Tensile', value: '50 MPa' },
+      { label: 'Max temp', value: '75 °C' },
+      { label: 'Layer heights', value: '0.12–0.28 mm' },
+    ],
   },
   {
-    materialKey: 'abs' as const,
-    body:
-      "The classic engineering thermoplastic. Heat resistant up to 95°C, " +
-      "easy to glue, sand, paint, and chemically smooth with acetone. " +
-      "Warps if printed without an enclosure — both our P1S printers " +
-      "have one. Slight smell during printing is normal; we run with " +
-      "the chamber filter on.",
-    layerRange: '0.12 – 0.28 mm · default 0.20',
-    walls: '3 – 4',
-    recommendedFor: 'Industrial enclosures · jigs · automotive',
-    titleBlock: 'PG-MAT-ABS',
+    name: 'ABS',
+    rate: '₹5.50 / g',
+    use: "Workshop jigs and fixtures you'll drill, tap, sand, or acetone-smooth. Holds up to heat.",
+    specs: [
+      { label: 'Density', value: '1.04 g/cm³' },
+      { label: 'Tensile', value: '40 MPa' },
+      { label: 'Max temp', value: '95 °C' },
+      { label: 'Layer heights', value: '0.12–0.28 mm' },
+    ],
   },
   {
-    materialKey: 'tpu-95a' as const,
-    body:
-      "95A shore hardness — flexible but not gummy. Holds shape under " +
-      "moderate compression and recovers cleanly. We print it slow with " +
-      "the AMS bypass (TPU is a pain through the multi-material " +
-      "selector). Avoid sharp internal corners — TPU likes radii.",
-    layerRange: '0.16 – 0.24 mm · default 0.20',
-    walls: '3',
-    recommendedFor: 'Gaskets · grips · vibration dampers · feet',
-    titleBlock: 'PG-MAT-TPU-95A',
+    name: 'TPU 95A',
+    rate: '₹8.50 / g',
+    use: 'Gaskets, vibration dampers, flex hinges, and soft grips. Shore 95A — firm but properly bendable.',
+    specs: [
+      { label: 'Density', value: '1.21 g/cm³' },
+      { label: 'Tensile', value: '30 MPa' },
+      { label: 'Max temp', value: '80 °C' },
+      { label: 'Layer heights', value: '0.12–0.28 mm' },
+    ],
   },
   {
-    materialKey: 'pa6' as const,
-    body:
-      "Engineering nylon. High tensile, gear-grade, takes threads well. " +
-      "Hygroscopic — we dry every spool before printing and ship within " +
-      "24 hours of QC. Stronger than ABS, stiffer than TPU, machinable " +
-      "if you need to drill or tap. Prints best with a hardened nozzle " +
-      "and a heated chamber.",
-    layerRange: '0.16 – 0.24 mm · default 0.20',
-    walls: '3 – 4',
-    recommendedFor: 'Gears · brackets · threaded inserts · structural',
-    titleBlock: 'PG-MAT-PA6',
+    name: 'PA6',
+    rate: '₹20.00 / g',
+    use: 'Tough functional parts. Heat-resistant, abrasion-resistant. Hygroscopic — dry before printing.',
+    specs: [
+      { label: 'Density', value: '1.14 g/cm³' },
+      { label: 'Tensile', value: '65 MPa' },
+      { label: 'Max temp', value: '110 °C' },
+      { label: 'Layer heights', value: '0.12–0.28 mm' },
+    ],
   },
   {
-    materialKey: 'pa-cf' as const,
-    body:
-      "PA6 with chopped carbon fibre. Stiffer and stronger than plain " +
-      "PA6 with a fraction of the weight gain — drone arms, robot " +
-      "frames, anything that wants to fail at the bolt rather than the " +
-      "part. Abrasive: we keep a hardened nozzle dedicated to it. " +
-      "Surface finish has visible CF fibre orientation, which most " +
-      "engineering customers prefer; if you want it hidden, prime + paint.",
-    layerRange: '0.16 – 0.24 mm · default 0.20',
-    walls: '4',
-    recommendedFor: 'Drone arms · robot frames · end-use structural',
-    titleBlock: 'PG-MAT-PA-CF',
+    name: 'PA-CF',
+    rate: '₹22 / g',
+    use: 'Engineering-grade parts under real load — drone arms, end-effectors, structural mounts. Stiff, light, expensive.',
+    specs: [
+      { label: 'Density', value: '1.16 g/cm³' },
+      { label: 'Tensile', value: '90 MPa' },
+      { label: 'Max temp', value: '130 °C' },
+      { label: 'Layer heights', value: '0.12–0.28 mm' },
+    ],
   },
 ];
 
 export default function MaterialsPage() {
   return (
     <>
-      <MaterialsHero />
-      {ENTRIES.map((entry, i) => (
-        <MaterialSection key={entry.materialKey} index={i} {...entry} />
-      ))}
+      <section className="page-head">
+        <div className="wrap">
+          <div className="eyebrow page-head__eyebrow">Materials</div>
+          <h1 className="display-2">Seven FDM materials kept in stock.</h1>
+          <p className="lede">
+            No &lsquo;available on request&rsquo;. If you ordered today, we&rsquo;d be printing tomorrow morning.
+          </p>
+        </div>
+      </section>
+
+      <section className="materials">
+        <div className="wrap">
+          <div className="materials-grid">
+            {MATERIALS.map((m) => (
+              <article className="material-card" key={m.name}>
+                <div className="material-card__head">
+                  <h2 className="material-card__name">{m.name}</h2>
+                  <span className="material-card__rate">{m.rate}</span>
+                </div>
+                <p className="material-card__use">{m.use}</p>
+                <div className="material-card__specs">
+                  {m.specs.map((s) => (
+                    <div className="material-card__spec" key={s.label}>
+                      <span className="material-card__spec-label">{s.label}</span>
+                      <span className="material-card__spec-value">{s.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
     </>
   );
 }

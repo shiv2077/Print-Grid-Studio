@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy — PrintGrid Studio</title>
+  <script>
+    (function () {
+      var k = "printgrid-theme";
+      var stored = localStorage.getItem(k);
+      var preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", stored || preferred);
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="js/theme.js"></script>
+</head>
+<body>
+
+  <div class="status-strip">
+    <div class="wrap">
+      Chennai &middot; Hyderabad pickup from late June 2026 &middot; Ships pan-India in 4 days
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="index.html" aria-label="PrintGrid Studio home">
+        PrintGrid
+        <span class="wordmark__sub">Studio &middot; 3D printing</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="nav-link" href="materials.html">Materials</a>
+        <a class="nav-link" href="index.html#how-it-works">How it works</a>
+        <a class="nav-link" href="index.html#pricing">Pricing</a>
+        <a class="nav-link" href="contact.html">Contact</a>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme">
+          <span data-theme-label>DARK</span>
+        </button>
+        <a class="btn btn-primary" href="quote.html">Get a quote</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-head">
+      <div class="wrap">
+        <div class="eyebrow page-head__eyebrow">Privacy</div>
+        <h1 class="display-2">What we collect. What we don't.</h1>
+        <p>Last updated: 2026-05-01</p>
+        <p class="lede">Short version: we keep order data, your STL files, and nothing else. No tracking. No ads. No data sales.</p>
+      </div>
+    </section>
+
+    <section class="policy">
+      <div class="wrap">
+        <div class="prose">
+
+          <h2>What we collect</h2>
+          <ul>
+            <li>Order data — name, email, phone, delivery address. Used to print, ship, and contact you. That's it.</li>
+            <li>Uploaded models — STL/OBJ/3MF files you submit. Stored on our server, used only to fulfil your order. Deleted on request.</li>
+            <li>Payment data — handled entirely by Razorpay. We never see, store, or transmit card numbers, UPI PINs, or bank credentials.</li>
+            <li>Server logs — basic access logs for security. No third-party trackers, no behavioural profiling.</li>
+          </ul>
+
+          <h2>What we don't do</h2>
+          <ul>
+            <li>Sell, rent, or share your data with third parties.</li>
+            <li>Use your uploaded models for marketing, training, or anything other than your specific order — unless you sign a written release.</li>
+            <li>Send marketing email unless you explicitly opt in.</li>
+          </ul>
+
+          <h2>Your rights</h2>
+          <p>You can request a copy of all data we hold on you, request correction, or request deletion (within legal/tax retention limits — invoices must be kept 8 years per Indian law). Email aadharsh.j10@gmail.com.</p>
+
+          <h2>NDAs</h2>
+          <p>We sign mutual NDAs at no cost for client work. Send your template or use ours.</p>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="site-footer__copy">&copy; 2026 PrintGrid Studio &middot; Chennai</div>
+      <ul class="site-footer__links">
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="terms.html">Terms</a></li>
+        <li><a href="refund.html">Refund</a></li>
+        <li><a href="shipping.html">Shipping</a></li>
+      </ul>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,1121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quote — PrintGrid Studio</title>
+  <script>
+    (function () {
+      var k = "printgrid-theme";
+      var stored = localStorage.getItem(k);
+      var preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", stored || preferred);
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="js/theme.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.1/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <div class="status-strip">
+    <div class="wrap">
+      Chennai &middot; Hyderabad pickup from late June 2026 &middot; Ships pan-India in 4 days
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="index.html" aria-label="PrintGrid Studio home">
+        PrintGrid
+        <span class="wordmark__sub">Studio &middot; 3D printing</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="nav-link" href="materials.html">Materials</a>
+        <a class="nav-link" href="index.html#how-it-works">How it works</a>
+        <a class="nav-link" href="index.html#pricing">Pricing</a>
+        <a class="nav-link" href="contact.html">Contact</a>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme">
+          <span data-theme-label>DARK</span>
+        </button>
+        <a class="btn btn-primary" href="quote.html">Get a quote</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="quote-print-header">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <strong style="font-size: 22px; letter-spacing:-0.01em;">PrintGrid Studio</strong><br />
+          <span style="font-family:var(--font-mono); font-size:11px; letter-spacing:0.18em;">FDM 3D PRINTING · CHENNAI</span>
+        </div>
+        <div style="text-align:right; font-family:var(--font-mono); font-size:12px;">
+          <strong data-print-quote-id>PG-XXXXXX</strong><br />
+          <span data-print-date>—</span><br />
+          <span style="color:#666;">Valid 7 days</span>
+        </div>
+      </div>
+    </div>
+
+    <section class="page-head">
+      <div class="wrap">
+        <div class="eyebrow page-head__eyebrow">Quote</div>
+        <h1 class="display-2">Drop a file. See real numbers.</h1>
+        <p class="lede">STL &middot; OBJ &middot; 3MF up to 100 MB. We parse the geometry on this page — your file isn't uploaded until you place the order.</p>
+      </div>
+    </section>
+
+    <section class="quote">
+      <div class="wrap">
+
+        <!-- 3D viewer (above the form grid) -->
+        <div id="viewer" class="quote-viewer">
+          <div class="quote-viewer__hud-presets" data-presets></div>
+          <div class="quote-viewer__hud-dims" data-dims></div>
+          <div class="quote-viewer__hud-tip">DRAG · ORBIT&nbsp;&nbsp;/&nbsp;&nbsp;WHEEL · ZOOM&nbsp;&nbsp;/&nbsp;&nbsp;SHIFT+DRAG · PAN</div>
+          <div class="quote-viewer__empty" data-empty>Drop an STL to preview</div>
+        </div>
+
+        <div class="quote-grid">
+
+          <!-- LEFT: dropzone + file list -->
+          <aside class="quote-col quote-col--left">
+            <div class="quote-dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload STL file">
+              <div class="quote-dropzone__title">Drop STL files</div>
+              <div class="quote-dropzone__sub">or click to upload</div>
+              <div class="label quote-dropzone__hint">STL &middot; OBJ &middot; 3MF &middot; max 100 MB</div>
+              <input type="file" id="file-input" accept=".stl,.obj,.3mf" multiple hidden />
+            </div>
+            <div id="file-list" class="quote-files" aria-live="polite"></div>
+          </aside>
+
+          <!-- CENTER: stats + form -->
+          <section class="quote-col quote-col--center">
+            <!-- Per-file control cards (one per uploaded file). -->
+            <div id="file-cards-container" class="quote-file-cards"></div>
+
+            <!-- Order-level controls only: rush, promo, notes. -->
+            <form class="quote-form" id="quote-form">
+              <label class="quote-row quote-row--check">
+                <input type="checkbox" name="rush" data-rush />
+                <span>Rush · 48h dispatch (+25%)</span>
+              </label>
+
+              <details class="promo-toggle">
+                <summary>Have a discount code?</summary>
+                <div class="promo-row">
+                  <input type="text" data-promo-input placeholder="e.g. FIRSTPRINT" autocapitalize="characters" />
+                  <button type="button" data-promo-apply class="btn btn-ghost">Apply</button>
+                </div>
+                <span data-promo-status class="form-help"></span>
+              </details>
+
+              <label class="quote-row">
+                <span class="label">Notes (optional)</span>
+                <textarea name="notes" rows="2" placeholder="Anything we should know about the print?"></textarea>
+              </label>
+            </form>
+          </section>
+
+          <!-- RIGHT: sticky live quote -->
+          <aside class="quote-col quote-col--right">
+            <div class="quote-card">
+              <div class="eyebrow">Subtotal</div>
+              <div class="quote-card__total-headline" id="quote-price">—</div>
+              <div class="quote-card__total-caption">Before shipping · INR · GST included</div>
+              <div class="quote-card__contributors" id="contributors">
+                <p class="quote-card__empty">Drop a file to see a quote.</p>
+              </div>
+              <div class="quote-card__line" id="line-summary"></div>
+              <div class="quote-card__discount-section" id="discount-section"></div>
+              <p class="form-help hidden" id="razorpay-caption">Shipping calculated at checkout based on your PIN. GST included in all prices — request a GST invoice at checkout for B2B.</p>
+              <div class="label quote-card__caption" id="time-caption"></div>
+              <div class="quote-card__warnings" id="warnings"></div>
+              <div class="quote-card__envelope hidden" id="envelope-warning">
+                Exceeds build envelope (256 &times; 256 &times; 256 mm)
+              </div>
+            </div>
+            <div class="quote-actions">
+              <button type="button" class="btn btn-primary quote-cta" id="cta">
+                Place order — pay via Razorpay
+              </button>
+              <button type="button" class="btn btn-ghost" data-print-quote>
+                Download quote (PDF)
+              </button>
+            </div>
+          </aside>
+
+        </div>
+      </div>
+    </section>
+
+    <div class="quote-print-footer">
+      Quote valid for 7 days from issue date. Prices in INR, inclusive of materials, labour, machine time, and Razorpay processing.<br />
+      Order online at printgrid.co.in/quote.html · WhatsApp +91 75400 23670 · aadharsh.j10@gmail.com<br />
+      PrintGrid Studio · Chennai · GSTIN to be added on payment confirmation
+    </div>
+  </main>
+
+  <!-- Duplicate-file modal (hidden by default) -->
+  <div class="quote-modal hidden" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="quote-modal__backdrop" id="modal-backdrop"></div>
+    <div class="quote-modal__card">
+      <div class="quote-modal__title" id="modal-title">Duplicate file</div>
+      <p class="quote-modal__body" id="modal-body"></p>
+      <div class="quote-modal__actions">
+        <button type="button" class="btn" id="modal-qty">Increase qty</button>
+        <button type="button" class="btn btn-ghost" id="modal-add">Add anyway</button>
+        <button type="button" class="btn btn-ghost" id="modal-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="site-footer__copy">&copy; 2026 PrintGrid Studio &middot; Chennai</div>
+      <ul class="site-footer__links">
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="terms.html">Terms</a></li>
+        <li><a href="refund.html">Refund</a></li>
+        <li><a href="shipping.html">Shipping</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { parseSTL } from './js/stl.js';
+    import { parse3MF } from './js/3mf.js';
+    import { computeQuote, validatePromoCode } from './js/pricing.js';
+    import { mountViewer } from './js/viewer.js';
+
+    // Defensive wrap — surface module-init errors as a visible red banner
+    // instead of letting them die silently in the console. Imports above
+    // can't be inside the try (ES modules require top-level imports), so
+    // import-time errors still bypass this — they surface as a regular
+    // console error and a non-functional page.
+    try {
+    const viewer = mountViewer(document.getElementById('viewer'));
+
+    const $ = (id) => document.getElementById(id);
+    // Always display the exact paise stored in the engine — guarantees that
+    // the per-line breakdown sums exactly to the grand total, no visual drift.
+    const fmtPaise = (p) => '₹' + (p / 100).toLocaleString('en-IN', {
+      minimumFractionDigits: 2, maximumFractionDigits: 2,
+    });
+    const fmtMinutes = (hours) => {
+      const m = Math.max(0, Math.round(hours * 60));
+      if (m < 60) return m + ' min';
+      return Math.floor(m / 60) + ' h ' + (m % 60) + ' min';
+    };
+    const escapeHtml = (s) => String(s).replace(
+      /[&<>"']/g,
+      (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+    );
+    const truncate = (s, n) => (s.length <= n ? s : s.slice(0, n - 1) + '…');
+    const bboxStr = (b) => Math.round(b.x) + ' × ' + Math.round(b.y) + ' × ' + Math.round(b.z) + ' mm';
+
+    // ---- State ---------------------------------------------------------
+    // state.files entries have a `kind`:
+    //   'ok'       — parsed & accepted (has buffer, stats, hash, params, warnings, dismissedWarnings)
+    //   'rejected' — failed extension / size / corruption / sub-mm check (has reason)
+    //   'parsing'  — transient placeholder shown while a >50MB file is being read/hashed/parsed
+    const state = {
+      files: [],
+      activeFileId: null,
+      order: {
+        // qty / finish / multicolor are now per-file (state.files[i].params).
+        // Only truly order-level params live here.
+        notes:     '',
+        rush:      false,
+        promoCode: null,
+      },
+    };
+    // Default per-file params for newly-loaded files (also inherits from
+    // most-recently-edited file if one exists — see loadOne).
+    const DEFAULT_FILE_PARAMS = () => ({
+      materialSlug: 'pla-plus',
+      layerHeight:  0.20,
+      infillPct:    20,
+      walls:        3,
+      quantity:     1,
+      finish:       'as-printed',
+      multicolor:   false,
+    });
+    let fileIdCounter = 0;
+    const nextFileId = () => 'f' + (++fileIdCounter);
+    const activeFile = () => state.files.find((f) => f.id === state.activeFileId && f.kind === 'ok');
+    const okFiles    = () => state.files.filter((f) => f.kind === 'ok');
+
+    const refs = {
+      dropzone:     $('dropzone'),
+      fileInput:    $('file-input'),
+      fileList:     $('file-list'),
+      form:         $('quote-form'),
+      cta:          $('cta'),
+      fileCardsContainer: $('file-cards-container'),
+      price:        $('quote-price'),
+      contributors: $('contributors'),
+      lineSummary:  $('line-summary'),
+      razorpayCaption: $('razorpay-caption'),
+      discountSection: $('discount-section'),
+      // (data-time-estimate removed; right-rail caption already shows print time.)
+      promoInput:   document.querySelector('[data-promo-input]'),
+      promoApply:   document.querySelector('[data-promo-apply]'),
+      promoStatus:  document.querySelector('[data-promo-status]'),
+      printBtn:     document.querySelector('[data-print-quote]'),
+      printQuoteId: document.querySelector('[data-print-quote-id]'),
+      printDate:    document.querySelector('[data-print-date]'),
+      caption:      $('time-caption'),
+      warnings:     $('warnings'),
+      envelope:     $('envelope-warning'),
+      modal:        $('modal'),
+      modalBody:    $('modal-body'),
+      modalQty:     $('modal-qty'),
+      modalAdd:     $('modal-add'),
+      modalCancel:  $('modal-cancel'),
+      modalBackdrop: $('modal-backdrop'),
+    };
+
+    // ---- Validation: extension whitelist -------------------------------
+    function checkExtension(filename) {
+      const ext = '.' + (filename.toLowerCase().split('.').pop() || '');
+      if (ext === '.stl' || ext === '.3mf') return null;
+
+      // OBJ would proceed to parse per the validation spec, but parseSTL
+      // can't read OBJ. Friendly placeholder rather than a "corrupt STL" error.
+      if (ext === '.obj') {
+        return 'OBJ parser is coming in a later pass. Please export as STL for now.';
+      }
+      const cad = ['.step', '.stp', '.iges', '.igs', '.sldprt', '.f3d', '.f3z', '.ipt', '.x_t', '.x_b'];
+      if (cad.includes(ext)) {
+        return ext + ' is a CAD file, not a printable mesh. Export your model as STL or OBJ from your CAD tool.';
+      }
+      const gcode = ['.gcode', '.gco', '.bgcode'];
+      if (gcode.includes(ext)) {
+        return 'G-code is the sliced output. We need the source mesh — export STL or OBJ from the CAD that made it.';
+      }
+      const archive = ['.zip', '.rar', '.7z'];
+      if (archive.includes(ext)) {
+        return 'Drop individual files instead of an archive.';
+      }
+      return ext + " isn't supported. Drop STL or OBJ files.";
+    }
+
+    // ---- SHA-256 hex via SubtleCrypto ----------------------------------
+    async function sha256Hex(buf) {
+      const hash = await crypto.subtle.digest('SHA-256', buf);
+      const arr  = new Uint8Array(hash);
+      let out = '';
+      for (let i = 0; i < arr.length; i++) {
+        out += arr[i].toString(16).padStart(2, '0');
+      }
+      return out;
+    }
+
+    // ---- Duplicate-file modal (Promise<'qty'|'add'|'cancel'>) ----------
+    function askDupeChoice(newName, existingName, currentQty) {
+      return new Promise((resolve) => {
+        refs.modalBody.innerHTML =
+          escapeHtml(newName) + ' matches <strong>' + escapeHtml(existingName) +
+          '</strong> already in your order. Increase the order quantity to ' +
+          (currentQty + 1) + ' (applied to every file) or add as a separate row?';
+        refs.modal.classList.remove('hidden');
+
+        let answered = false;
+        const choose = (v) => {
+          if (answered) return;
+          answered = true;
+          refs.modal.classList.add('hidden');
+          refs.modalQty.onclick = null;
+          refs.modalAdd.onclick = null;
+          refs.modalCancel.onclick = null;
+          refs.modalBackdrop.onclick = null;
+          document.removeEventListener('keydown', onKey);
+          resolve(v);
+        };
+        const onKey = (e) => { if (e.key === 'Escape') choose('cancel'); };
+        refs.modalQty.onclick     = () => choose('qty');
+        refs.modalAdd.onclick     = () => choose('add');
+        refs.modalCancel.onclick  = () => choose('cancel');
+        refs.modalBackdrop.onclick = () => choose('cancel');
+        document.addEventListener('keydown', onKey);
+        refs.modalQty.focus();
+      });
+    }
+
+    // ---- File upload ---------------------------------------------------
+    refs.dropzone.addEventListener('click', () => refs.fileInput.click());
+    refs.dropzone.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); refs.fileInput.click(); }
+    });
+    refs.dropzone.addEventListener('dragover',  (e) => { e.preventDefault(); refs.dropzone.classList.add('is-over'); });
+    refs.dropzone.addEventListener('dragleave', () => refs.dropzone.classList.remove('is-over'));
+    refs.dropzone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      refs.dropzone.classList.remove('is-over');
+      await loadFiles(e.dataTransfer.files);
+    });
+    refs.fileInput.addEventListener('change', async (e) => {
+      await loadFiles(e.target.files);
+      refs.fileInput.value = '';
+    });
+
+    async function loadFiles(fileList) {
+      // Sequential so the LAST successfully-added file ends up active and
+      // dupe modals don't stack up.
+      for (const f of fileList) {
+        await ingestOne(f);
+      }
+    }
+
+    function addRejected(name, reason) {
+      state.files.push({ kind: 'rejected', id: nextFileId(), name, reason });
+      renderFileList();
+    }
+
+    async function ingestOne(f) {
+      // 1. Extension whitelist
+      const extReject = checkExtension(f.name);
+      if (extReject) {
+        addRejected(f.name, extReject);
+        return;
+      }
+
+      // 2. Hard size cap
+      if (f.size > 100 * 1024 * 1024) {
+        addRejected(f.name, 'File over 100 MB — split your model or email us at aadharsh.j10@gmail.com.');
+        return;
+      }
+      const isLarge = f.size > 50 * 1024 * 1024;
+
+      // 3. Transient parsing placeholder for >50MB files
+      let tempId = null;
+      if (isLarge) {
+        tempId = nextFileId();
+        state.files.push({ kind: 'parsing', id: tempId, name: f.name });
+        renderFileList();
+        // Yield once so the placeholder paints before the heavy work.
+        await new Promise((r) => setTimeout(r, 0));
+      }
+      const cleanupTemp = () => {
+        if (tempId == null) return;
+        const idx = state.files.findIndex((x) => x.id === tempId);
+        if (idx !== -1) state.files.splice(idx, 1);
+        tempId = null;
+      };
+
+      try {
+        // 4. Read buffer
+        const buf = await f.arrayBuffer();
+
+        // 5. Parse to a list of mesh descriptors. STL → 1 row; 3MF → N rows.
+        let descriptors;
+        try {
+          descriptors = await parseToDescriptors(f.name, buf);
+        } catch (err) {
+          cleanupTemp();
+          addRejected(f.name, err.message);
+          return;
+        }
+        cleanupTemp();
+
+        // 6. Process each mesh row sequentially (so dupe modals don't stack).
+        for (const d of descriptors) {
+          await commitMesh(d);
+        }
+      } catch (err) {
+        cleanupTemp();
+        addRejected(f.name, 'Could not read file: ' + err.message);
+      }
+    }
+
+    // Convert any supported upload into 1+ mesh descriptors. Each descriptor
+    // becomes one row in the file list and one input to the quote engine.
+    async function parseToDescriptors(filename, buf) {
+      const ext = '.' + filename.toLowerCase().split('.').pop();
+
+      if (ext === '.3mf') {
+        const meshes = await parse3MF(buf);  // throws friendly errors on corrupt / empty
+        return meshes.map((m) => ({
+          displayName: meshes.length === 1 ? filename : filename + '#' + m.objectName,
+          buffer:      synthesizeBufferFromMesh(m),
+          source:      '3mf',
+          stats: {
+            volumeCm3:           m.volumeCm3,
+            surfaceCm2:          m.surfaceCm2,
+            bbox:                m.bbox,
+            triangles:           m.triangles,
+            degenerateTriangles: 0,  // 3MF parser doesn't surface this in v1
+            isBinary:            true,
+          },
+        }));
+      }
+
+      // STL path — parseSTL throws on binary size-invariant fail.
+      let stats;
+      try {
+        stats = parseSTL(buf);
+      } catch (err) {
+        const msg = /corrupt|does not match/i.test(err.message)
+          ? "STL appears corrupt. Re-export from your CAD tool. (Triangle count doesn't match file size.)"
+          : 'Could not parse: ' + err.message;
+        throw new Error(msg);
+      }
+      return [{ displayName: filename, buffer: buf, stats }];
+    }
+
+    // Per-mesh: hash, dupe modal, sub-1mm block, warnings, commit + activate.
+    async function commitMesh(d) {
+      const hash = await sha256Hex(d.buffer);
+
+      const existing = state.files.find((x) => x.kind === 'ok' && x.hash === hash);
+      if (existing) {
+        renderFileList();
+        const currentQty = existing.params.quantity || 1;
+        const choice = await askDupeChoice(d.displayName, existing.name, currentQty);
+        if (choice === 'cancel') return;
+        if (choice === 'qty') {
+          existing.params.quantity = currentQty + 1;
+          renderFileCards();
+          recompute();
+          return;
+        }
+        // 'add' falls through.
+      }
+
+      // 3MF files are unit-locked to mm by spec, so unit-mismatch heuristics
+      // (sub-1mm hard block, "very small dimension" soft warning) don't apply.
+      const maxDim = Math.max(d.stats.bbox.x, d.stats.bbox.y, d.stats.bbox.z);
+      if (d.source !== '3mf' && maxDim < 1) {
+        addRejected(
+          d.displayName,
+          'Mesh max dimension is ' + maxDim.toFixed(3) + ' mm. ' +
+          'It might be exported in inches by mistake — re-export in millimeters from your CAD tool.'
+        );
+        return;
+      }
+
+      const warnings = [];
+      if (d.source !== '3mf' && maxDim < 5 && d.stats.volumeCm3 < 0.5) {
+        warnings.push({
+          kind: 'unit',
+          dismissible: true,
+          msg:
+            'This mesh is very small (' + bboxStr(d.stats.bbox) + '). It might be exported in inches by mistake. ' +
+            'If your part is meant to be larger than 25 mm, re-export in millimeters from your CAD tool. ' +
+            "We'll print exactly what we receive — confirm before paying.",
+        });
+      }
+      if (d.stats.triangles > 800000) {
+        warnings.push({
+          kind: 'tri-count',
+          dismissible: false,
+          msg:
+            d.stats.triangles.toLocaleString() + ' triangles is unusually high. Bambu may struggle. ' +
+            'Decimate in MeshLab or Blender before printing if you can.',
+        });
+      }
+      if (d.stats.triangles > 0 && d.stats.degenerateTriangles) {
+        const pct = (d.stats.degenerateTriangles / d.stats.triangles) * 100;
+        if (pct > 0.1) {
+          warnings.push({
+            kind: 'degenerate',
+            dismissible: false,
+            msg:
+              'Mesh has ' + d.stats.degenerateTriangles + ' degenerate triangles (' + pct.toFixed(2) + '%). ' +
+              'Some slicers reject this — we may need to repair the mesh server-side, which takes longer.',
+          });
+        }
+      }
+
+      const id = nextFileId();
+      // New file inherits params from the most-recently-active file (so a
+      // user who set PETG + qty 10 on file 1 doesn't have to re-set it on
+      // file 2). Falls back to engine defaults if no prior file.
+      const inheritFrom = activeFile();
+      const params = inheritFrom
+        ? { ...inheritFrom.params }
+        : DEFAULT_FILE_PARAMS();
+
+      state.files.push({
+        kind: 'ok',
+        id,
+        name:   d.displayName,
+        buffer: d.buffer,
+        stats:  d.stats,
+        hash,
+        warnings,
+        dismissedWarnings: new Set(),
+        params,
+      });
+      setActive(id);
+    }
+
+    // Build a synthetic binary STL from a 3MF mesh so the existing viewer
+    // (which parses STL inline) and dupe-hashing flow work unchanged.
+    function synthesizeBufferFromMesh(m) {
+      const triCount = m.indices.length / 3;
+      const buf = new ArrayBuffer(84 + triCount * 50);
+      const dv  = new DataView(buf);
+      dv.setUint32(80, triCount, true);
+      let offset = 84;
+      for (let i = 0; i < triCount; i++) {
+        offset += 12; // skip face normal (zeros)
+        for (let j = 0; j < 3; j++) {
+          const idx = m.indices[i * 3 + j] * 3;
+          dv.setFloat32(offset,     m.vertices[idx],     true);
+          dv.setFloat32(offset + 4, m.vertices[idx + 1], true);
+          dv.setFloat32(offset + 8, m.vertices[idx + 2], true);
+          offset += 12;
+        }
+        offset += 2; // attribute byte count
+      }
+      return buf;
+    }
+
+    function setActive(id) {
+      const file = state.files.find((f) => f.id === id && f.kind === 'ok');
+      if (!file) return;
+      state.activeFileId = id;
+
+      // No form-sync — each file has its own control card. Refresh
+      // the viewer, re-render the file list/cards, and recompute the
+      // right-rail price (this last call is what was missing — without
+      // it the right rail stays in its empty state on first upload).
+      viewer.loadFromBuffer(file.buffer);
+      renderFileList();
+      renderFileCards();
+      recompute();
+    }
+
+    function removeFile(id) {
+      const idx = state.files.findIndex((f) => f.id === id);
+      if (idx === -1) return;
+      const wasActive = state.activeFileId === id;
+      state.files.splice(idx, 1);
+
+      if (wasActive) {
+        const remainingOk = okFiles();
+        if (remainingOk.length > 0) {
+          // Activate whichever ok-file took the removed slot, else the last one.
+          const nearest = state.files.filter((f, i) => i >= idx && f.kind === 'ok')[0]
+                         || remainingOk[remainingOk.length - 1];
+          setActive(nearest.id);
+          return;
+        }
+        state.activeFileId = null;
+        viewer.clearMesh();
+      }
+      renderFileList();
+      renderFileCards();
+      recompute();
+    }
+
+    function dismissWarning(fileId, kind) {
+      const file = state.files.find((f) => f.id === fileId && f.kind === 'ok');
+      if (!file) return;
+      file.dismissedWarnings.add(kind);
+      renderFileList();
+    }
+
+    // ---- Render --------------------------------------------------------
+    function renderFileList() {
+      if (state.files.length === 0) {
+        refs.fileList.innerHTML = '';
+        return;
+      }
+      refs.fileList.innerHTML = state.files.map((f) => {
+        if (f.kind === 'rejected') {
+          return (
+            '<div class="quote-file quote-file--rejected" data-file-id="' + f.id + '">' +
+              '<div class="quote-file__main">' +
+                '<div class="quote-file__name quote-file__name--muted">' + escapeHtml(f.name) + '</div>' +
+                '<div class="quote-file__rejection">' + escapeHtml(f.reason) + '</div>' +
+              '</div>' +
+              '<button type="button" class="quote-file__remove" data-remove-id="' + f.id + '" aria-label="Remove ' + escapeHtml(f.name) + '">×</button>' +
+            '</div>'
+          );
+        }
+        if (f.kind === 'parsing') {
+          return (
+            '<div class="quote-file quote-file--parsing" data-file-id="' + f.id + '">' +
+              '<div class="quote-file__main">' +
+                '<div class="quote-file__name">' + escapeHtml(f.name) + '</div>' +
+                '<div class="quote-file__parsing">Large file — parsing may take a few seconds…</div>' +
+              '</div>' +
+            '</div>'
+          );
+        }
+        // kind === 'ok'
+        const isActive = f.id === state.activeFileId;
+        const meta =
+          f.stats.volumeCm3.toFixed(2) + ' cm³ · ' +
+          Math.round(f.stats.bbox.x) + '×' + Math.round(f.stats.bbox.y) + '×' + Math.round(f.stats.bbox.z) + ' mm · ' +
+          f.stats.triangles.toLocaleString() + ' tris';
+
+        const visibleWarnings = f.warnings.filter((w) => !f.dismissedWarnings.has(w.kind));
+        const warningsHtml = visibleWarnings.map((w) =>
+          '<div class="quote-file__warning quote-file__warning--' + w.kind + '">' +
+            '<div class="quote-file__warning-text">⚠ ' + escapeHtml(w.msg) + '</div>' +
+            (w.dismissible
+              ? '<button type="button" class="quote-file__dismiss" data-dismiss-id="' + f.id + '" data-dismiss-kind="' + w.kind + '">Got it</button>'
+              : '') +
+          '</div>'
+        ).join('');
+
+        return (
+          '<div class="quote-file' + (isActive ? ' is-active' : '') + '" ' +
+               'data-file-id="' + f.id + '" tabindex="0" role="button" aria-pressed="' + isActive + '">' +
+            '<div class="quote-file__main">' +
+              '<div class="quote-file__name">' + escapeHtml(f.name) + '</div>' +
+              '<div class="quote-file__meta mono">' + meta + '</div>' +
+              warningsHtml +
+            '</div>' +
+            '<button type="button" class="quote-file__remove" data-remove-id="' + f.id + '" aria-label="Remove ' + escapeHtml(f.name) + '">×</button>' +
+          '</div>'
+        );
+      }).join('');
+
+      // Click → setActive (only ok files are click-targetable for activation)
+      refs.fileList.querySelectorAll('.quote-file:not(.quote-file--rejected):not(.quote-file--parsing)[data-file-id]').forEach((el) => {
+        el.addEventListener('click', (e) => {
+          if (e.target.closest('[data-remove-id]')) return;
+          if (e.target.closest('[data-dismiss-id]')) return;
+          setActive(el.dataset.fileId);
+        });
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setActive(el.dataset.fileId);
+          }
+        });
+      });
+      refs.fileList.querySelectorAll('[data-remove-id]').forEach((el) => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          removeFile(el.dataset.removeId);
+        });
+      });
+      refs.fileList.querySelectorAll('[data-dismiss-id]').forEach((el) => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dismissWarning(el.dataset.dismissId, el.dataset.dismissKind);
+        });
+      });
+    }
+
+    function renderEmptyQuote() {
+      refs.price.textContent = '—';
+      refs.contributors.innerHTML = '<p class="quote-card__empty">Drop a file to see a quote.</p>';
+      refs.lineSummary.innerHTML = '';
+      refs.discountSection.innerHTML = '';
+      refs.caption.textContent = '';
+      refs.warnings.innerHTML = '';
+      refs.envelope.classList.add('hidden');
+      refs.razorpayCaption.classList.add('hidden');
+    }
+
+    // ── Per-file control cards (case-C fix) ─────────────────────────────
+    // One card per file with all 7 controls (Material, Layer, Infill,
+    // Walls, Quantity, Finish, AMS multicolor). Rush + Promo + Notes stay
+    // global in #quote-form.
+
+    function renderFileCards() {
+      const ok = okFiles();
+      if (ok.length === 0) {
+        refs.fileCardsContainer.innerHTML = '';
+        return;
+      }
+      refs.fileCardsContainer.innerHTML = ok.map(renderFileCard).join('');
+    }
+
+    function renderFileCard(file) {
+      const id       = file.id;
+      const isActive = file.id === state.activeFileId;
+      const stats    = file.stats;
+      const p        = file.params;
+      const sel = (cur, val) => cur === val ? ' selected' : '';
+
+      return (
+        '<article class="quote-file-card' + (isActive ? ' is-active' : '') + '" ' +
+                 'data-file-id="' + id + '" tabindex="0">' +
+          '<header class="quote-file-card__header">' +
+            '<strong class="quote-file-card__name">File · ' + escapeHtml(file.name) + '</strong>' +
+            '<button type="button" class="quote-file__remove" data-remove-id="' + id + '" ' +
+                    'aria-label="Remove ' + escapeHtml(file.name) + '">×</button>' +
+          '</header>' +
+          '<div class="quote-file-card__stats mono">' +
+            stats.volumeCm3.toFixed(2) + ' cm³ · ' +
+            Math.round(stats.bbox.x) + '×' + Math.round(stats.bbox.y) + '×' + Math.round(stats.bbox.z) + ' mm · ' +
+            stats.triangles.toLocaleString() + ' tris' +
+          '</div>' +
+          '<div class="quote-file-card__controls">' +
+            '<label class="quote-row"><span class="label">Material</span>' +
+              '<select data-file-id="' + id + '" data-param="materialSlug">' +
+                '<option value="pla-plus"' + sel(p.materialSlug, 'pla-plus') + '>PLA+</option>' +
+                '<option value="pla-lw"'   + sel(p.materialSlug, 'pla-lw')   + '>PLA LW</option>' +
+                '<option value="petg"'     + sel(p.materialSlug, 'petg')     + '>PETG</option>' +
+                '<option value="abs"'      + sel(p.materialSlug, 'abs')      + '>ABS</option>' +
+                '<option value="tpu-95a"'  + sel(p.materialSlug, 'tpu-95a')  + '>TPU 95A</option>' +
+                '<option value="pa6"'      + sel(p.materialSlug, 'pa6')      + '>PA6</option>' +
+                '<option value="pa-cf"'    + sel(p.materialSlug, 'pa-cf')    + '>PA-CF</option>' +
+              '</select>' +
+            '</label>' +
+            '<label class="quote-row"><span class="label">Layer height</span>' +
+              '<select data-file-id="' + id + '" data-param="layerHeight">' +
+                '<option value="0.28"' + sel(p.layerHeight, 0.28) + '>0.28 mm — Draft · −15%</option>' +
+                '<option value="0.24"' + sel(p.layerHeight, 0.24) + '>0.24 mm — Fast · −5%</option>' +
+                '<option value="0.20"' + sel(p.layerHeight, 0.20) + '>0.20 mm — Standard</option>' +
+                '<option value="0.16"' + sel(p.layerHeight, 0.16) + '>0.16 mm — Smooth · +15%</option>' +
+                '<option value="0.12"' + sel(p.layerHeight, 0.12) + '>0.12 mm — Fine · +35%</option>' +
+              '</select>' +
+            '</label>' +
+            '<label class="quote-row">' +
+              '<span class="label">Infill <span class="quote-row__hint mono" data-infill-display="' + id + '">' + p.infillPct + '%</span></span>' +
+              '<input type="range" data-file-id="' + id + '" data-param="infillPct" min="0" max="100" step="5" value="' + p.infillPct + '" />' +
+            '</label>' +
+            '<label class="quote-row">' +
+              '<span class="label">Walls <span class="quote-row__hint mono" data-walls-display="' + id + '">' + p.walls + '</span></span>' +
+              '<input type="range" data-file-id="' + id + '" data-param="walls" min="2" max="6" step="1" value="' + p.walls + '" />' +
+            '</label>' +
+            '<label class="quote-row"><span class="label">Quantity</span>' +
+              '<input type="number" data-file-id="' + id + '" data-param="quantity" min="1" max="500" value="' + p.quantity + '" inputmode="numeric" />' +
+            '</label>' +
+            '<label class="quote-row"><span class="label">Finish</span>' +
+              '<select data-file-id="' + id + '" data-param="finish">' +
+                '<option value="as-printed"' + sel(p.finish, 'as-printed') + '>As-printed</option>' +
+                '<option value="sanded"'     + sel(p.finish, 'sanded')     + '>Sanded (+ ₹75)</option>' +
+                '<option value="primer"'     + sel(p.finish, 'primer')     + '>Primer (+ ₹90)</option>' +
+                '<option value="paint"'      + sel(p.finish, 'paint')      + '>Paint (+ ₹280)</option>' +
+              '</select>' +
+            '</label>' +
+            '<label class="quote-row quote-row--check">' +
+              '<input type="checkbox" data-file-id="' + id + '" data-param="multicolor"' +
+                     (p.multicolor ? ' checked' : '') + ' />' +
+              '<span>AMS multicolor (+20%)</span>' +
+            '</label>' +
+          '</div>' +
+        '</article>'
+      );
+    }
+
+    // Delegated input/click on the file-cards container — one listener
+    // serves every per-file control across every card.
+    refs.fileCardsContainer.addEventListener('input', (e) => {
+      const t      = e.target;
+      const fileId = t.dataset.fileId;
+      const param  = t.dataset.param;
+      if (!fileId || !param) return;
+      const file = state.files.find((f) => f.id === fileId && f.kind === 'ok');
+      if (!file) return;
+
+      let value;
+      if (param === 'multicolor') {
+        value = t.checked;
+      } else if (param === 'layerHeight') {
+        value = parseFloat(t.value);
+      } else if (param === 'infillPct' || param === 'walls') {
+        value = parseInt(t.value, 10);
+      } else if (param === 'quantity') {
+        value = parseInt(t.value, 10) || 1;
+      } else {
+        value = t.value;
+      }
+      file.params[param] = value;
+
+      // Inline updates to the slider value displays — no full re-render
+      // (would steal focus from the slider and stop drag interactions).
+      if (param === 'infillPct') {
+        const d = refs.fileCardsContainer.querySelector('[data-infill-display="' + fileId + '"]');
+        if (d) d.textContent = value + '%';
+      } else if (param === 'walls') {
+        const d = refs.fileCardsContainer.querySelector('[data-walls-display="' + fileId + '"]');
+        if (d) d.textContent = value;
+      }
+
+      recompute();
+    });
+
+    refs.fileCardsContainer.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('[data-remove-id]');
+      if (removeBtn) {
+        e.stopPropagation();
+        removeFile(removeBtn.dataset.removeId);
+        return;
+      }
+      const card = e.target.closest('.quote-file-card');
+      if (card) setActive(card.dataset.fileId);
+    });
+
+    // Per-file breakdown block. Default flow (PLA+ ish · 0.20mm · qty 1
+    // · no multicolor · as-printed) collapses to two rows: file header
+    // with price + Line subtotal. Otherwise renders a transparent
+    // breakdown of every uplift contributing to the per-unit price.
+    function renderFileBlock(pf) {
+      const isDefault = pf.layerMultiplier === 1.0
+                     && !pf.multicolor
+                     && pf.finishPaise === 0
+                     && pf.quantity === 1;
+
+      const fileHeader = (priceCell) =>
+        '<div class="quote-row-line quote-row-line--file">' +
+          '<span title="' + escapeHtml(pf.name) + '">File · ' +
+            escapeHtml(truncate(pf.name, 24)) + '</span>' +
+          priceCell +
+        '</div>';
+
+      const detailRow = (label, valueHtml, extraClass) =>
+        '<div class="quote-row-line quote-row-line--file-detail' +
+              (extraClass ? ' ' + extraClass : '') + '">' +
+          '<span>' + label + '</span>' +
+          '<span class="mono">' + valueHtml + '</span>' +
+        '</div>';
+
+      if (isDefault) {
+        return fileHeader('<span class="mono">' + fmtPaise(pf.lineSubtotalPaise) + '</span>') +
+               detailRow('Line subtotal', fmtPaise(pf.lineSubtotalPaise), 'quote-row-line--strong');
+      }
+
+      let html = fileHeader('<span></span>');
+
+      html += detailRow(
+        'Material · ' + escapeHtml(pf.materialName) + ' · ' + pf.grams.toFixed(2) + 'g',
+        fmtPaise(pf.materialBasePaise)
+      );
+
+      if (pf.layerMultiplier !== 1.0) {
+        const sign = pf.layerUpliftPaise > 0 ? '+'
+                   : pf.layerUpliftPaise < 0 ? '−' : '';
+        html += detailRow(
+          'Layer ' + pf.layerHeight + 'mm × ' + pf.layerMultiplier.toFixed(2),
+          sign + fmtPaise(Math.abs(pf.layerUpliftPaise))
+        );
+      }
+      if (pf.multicolor && pf.multicolorUpliftPaise > 0) {
+        html += detailRow(
+          'AMS multicolor × 1.20',
+          '+' + fmtPaise(pf.multicolorUpliftPaise)
+        );
+      }
+      if (pf.finishPaise > 0) {
+        html += detailRow(
+          'Finish · ' + escapeHtml(pf.finish),
+          '+' + fmtPaise(pf.finishPaise)
+        );
+      }
+
+      html += detailRow('Per unit', fmtPaise(pf.perUnitPaise));
+
+      if (pf.quantity > 1) {
+        html += detailRow(
+          'Quantity × ' + pf.quantity,
+          fmtPaise(pf.lineGrossPaise)
+        );
+      }
+      if (pf.qtyDiscountPaise > 0) {
+        html += detailRow(
+          'Volume discount −' + pf.qtyDiscountPct + '%',
+          '−' + fmtPaise(pf.qtyDiscountPaise)
+        );
+      }
+
+      html += detailRow(
+        'Line subtotal',
+        fmtPaise(pf.lineSubtotalPaise),
+        'quote-row-line--strong'
+      );
+      return html;
+    }
+
+    function renderQuote(q) {
+      // Headline = subtotalPaise (GST-inclusive, before shipping).
+      refs.price.textContent = fmtPaise(q.subtotalPaise);
+
+      // ── Section 1 (contributors): per-file blocks + Setup + min-order top-up ──
+      const fileLines = q.perFile.map(renderFileBlock).join('');
+
+      let partsLines = (
+        '<div class="quote-row-line">' +
+          '<span>Setup × ' + q.fileCount + ' ' + (q.fileCount === 1 ? 'file' : 'files') + '</span>' +
+          '<span class="mono">' + fmtPaise(q.setupTotalPaise) + '</span>' +
+        '</div>'
+      );
+      if (q.minOrderTopUpPaise > 0) {
+        partsLines +=
+          '<div class="quote-row-line">' +
+            '<span>Min order top-up</span>' +
+            '<span class="mono">+' + fmtPaise(q.minOrderTopUpPaise) + '</span>' +
+          '</div>';
+      }
+      refs.contributors.innerHTML = fileLines + partsLines;
+
+      // ── Section 2 (line-summary): Subtotal (bold) + Rush (conditional) ──
+      // Subtotal = headline (subtotalPaise). With nothing added on top at
+      // this stage, the row mirrors the headline. Rush is shown below as
+      // an informational breakdown of what's included in the subtotal.
+      let summary =
+        '<div class="quote-row-line quote-row-line--strong">' +
+          '<span>Subtotal</span>' +
+          '<span class="mono">' + fmtPaise(q.subtotalPaise) + '</span>' +
+        '</div>';
+      if (q.rushPaise > 0) {
+        summary +=
+          '<div class="quote-row-line">' +
+            '<span>Rush 48h +25%</span>' +
+            '<span class="mono">' + fmtPaise(q.rushPaise) + '</span>' +
+          '</div>';
+      }
+      refs.lineSummary.innerHTML = summary;
+
+      // ── Section 3 (discount-section): Promo (conditional) ──
+      refs.discountSection.innerHTML = q.promoDiscountPaise > 0
+        ? ('<div class="quote-row-line quote-row-line--discount">' +
+             '<span>Discount · ' + escapeHtml(q.promoLabel) + '</span>' +
+             '<span class="mono">−' + fmtPaise(q.promoDiscountPaise) + '</span>' +
+           '</div>')
+        : '';
+
+      refs.razorpayCaption.classList.remove('hidden');
+
+      // Time + grams totals (across files × qty)
+      // Per-file quantity now lives on each perFile entry — sum (grams × qty) / (hours × qty).
+      const totalGrams = q.perFile.reduce((s, f) => s + f.grams * f.quantity, 0);
+      const totalHours = q.perFile.reduce((s, f) => s + f.hours * f.quantity, 0);
+      refs.caption.textContent =
+        '~' + totalGrams.toFixed(1) + ' g · ~' + totalHours.toFixed(2) + ' h print time';
+
+      refs.warnings.innerHTML = q.warnings
+        .map((w) => '<div class="quote-warning">⚠ ' + escapeHtml(w) + '</div>')
+        .join('');
+
+      refs.envelope.classList.toggle('hidden', q.fitsBuildVolume);
+    }
+
+    function recompute() {
+      const ok = okFiles();
+      if (ok.length === 0) {
+        renderEmptyQuote();
+        return;
+      }
+
+      // Each file carries its own qty / finish / multicolor — pass them all
+      // per-file. defaults is empty because there's no order-level fallback
+      // anymore (the form's order-level fields are rush + promo + notes).
+      const filesArr = ok.map((f) => ({
+        filename:     f.name,
+        volumeCm3:    f.stats.volumeCm3,
+        bbox:         f.stats.bbox,
+        materialSlug: f.params.materialSlug,
+        layerHeight:  f.params.layerHeight,
+        infillPct:    f.params.infillPct,
+        walls:        f.params.walls,
+        quantity:     f.params.quantity,
+        finish:       f.params.finish,
+        multicolor:   f.params.multicolor,
+      }));
+      const opts = {
+        rush:      state.order.rush,
+        promoCode: state.order.promoCode,
+      };
+      try {
+        renderQuote(computeQuote(filesArr, {}, opts));
+      } catch (err) {
+        refs.price.textContent = '—';
+        refs.contributors.innerHTML =
+          '<p class="quote-card__empty">Error: ' + escapeHtml(err.message) + '</p>';
+      }
+    }
+
+    // ---- Form events (order-level only: rush + notes) ──────────────────
+    refs.form.addEventListener('input', () => {
+      state.order.rush  = refs.form.rush.checked;
+      state.order.notes = refs.form.notes.value;
+      recompute();
+    });
+
+    // ---- Promo input wiring --------------------------------------------
+    function applyPromo() {
+      const raw = refs.promoInput.value.trim();
+      if (!raw) {
+        state.order.promoCode = null;
+        refs.promoStatus.textContent = '';
+        refs.promoStatus.className = 'form-help';
+        recompute();
+        return;
+      }
+      const promo = validatePromoCode(raw);
+      if (promo) {
+        state.order.promoCode = raw.toUpperCase();
+        refs.promoStatus.textContent = '✓ ' + promo.label + ' applied';
+        refs.promoStatus.className = 'form-help promo-status--ok';
+      } else {
+        state.order.promoCode = null;
+        refs.promoStatus.textContent = 'Code not recognized';
+        refs.promoStatus.className = 'form-help promo-status--err';
+      }
+      recompute();
+    }
+    refs.promoApply.addEventListener('click', applyPromo);
+    refs.promoInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); applyPromo(); }
+    });
+
+    // ---- Print quote (browser-native PDF via window.print) -------------
+    function generateQuoteId() {
+      return 'PG-' + Date.now().toString(36).toUpperCase().slice(-6);
+    }
+    function formatPrintDate(d) {
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+    }
+    refs.printBtn.addEventListener('click', () => {
+      if (okFiles().length === 0) {
+        alert('Drop an STL first to generate a quote.');
+        return;
+      }
+      const id = generateQuoteId();
+      const originalTitle = document.title;
+      document.title = 'Quote ' + id + ' · PrintGrid Studio';
+      refs.printQuoteId.textContent = id;
+      refs.printDate.textContent = formatPrintDate(new Date());
+      document.body.classList.add('is-printing');
+
+      const onAfter = () => {
+        document.body.classList.remove('is-printing');
+        document.title = originalTitle;
+        window.removeEventListener('afterprint', onAfter);
+      };
+      window.addEventListener('afterprint', onAfter);
+
+      // Allow one paint frame before opening the print dialog so the
+      // print-only header/footer have rendered.
+      setTimeout(() => window.print(), 50);
+    });
+
+    // ---- CTA ------------------------------------------------------------
+    refs.cta.addEventListener('click', () => {
+      alert('Backend not yet wired — coming next pass.');
+    });
+
+    // ---- Initial render -------------------------------------------------
+    renderEmptyQuote();
+    } catch (e) {
+      console.error('[quote.html INIT FAILED]', e);
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#A1281C;color:#fff;padding:12px;text-align:center;font-family:monospace;';
+      banner.textContent = 'Page failed to initialize: ' + (e?.message || e);
+      document.body.prepend(banner);
+    }
+  </script>
+
+</body>
+</html>

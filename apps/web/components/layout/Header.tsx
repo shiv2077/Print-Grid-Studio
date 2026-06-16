@@ -1,11 +1,5 @@
-'use client';
-
-import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import clsx from 'clsx';
-import { Container } from '@/components/ui/Container';
-import { MobileMenu } from './MobileMenu';
-import styles from './Header.module.css';
+import { ThemeToggle } from './ThemeToggle';
 
 const NAV_LINKS = [
   { href: '/materials', label: 'Materials' },
@@ -15,49 +9,25 @@ const NAV_LINKS = [
 ] as const;
 
 export function Header() {
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel || typeof IntersectionObserver === 'undefined') return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry) setScrolled(!entry.isIntersecting);
-      },
-      { rootMargin: '-80px 0px 0px 0px', threshold: 0 }
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <>
-      <div ref={sentinelRef} className={styles.scrollSentinel} aria-hidden />
-      <header
-        className={clsx(styles.header, scrolled && styles.scrolled, scrolled && 'glass')}
-      >
-        <Container>
-          <div className={styles.row}>
-            <Link href="/" className={styles.wordmark} aria-label="PrintGrid Studio home">
-              <span className={styles.wordmarkPrimary}>PRINTGRID</span>
-              <span className={styles.wordmarkSub}>studio · 3d printing</span>
+    <header className="site-header">
+      <div className="wrap">
+        <Link className="wordmark" href="/" aria-label="PrintGrid Studio home">
+          PrintGrid
+          <span className="wordmark__sub">Studio · 3D printing</span>
+        </Link>
+        <nav className="site-nav" aria-label="Primary">
+          {NAV_LINKS.map((link) => (
+            <Link key={link.href} className="nav-link" href={link.href}>
+              {link.label}
             </Link>
-            <nav className={styles.nav} aria-label="Primary">
-              {NAV_LINKS.map((link) => (
-                <Link key={link.href} href={link.href} className={styles.navLink}>
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-            <Link href="/quote" className={styles.cta}>
-              Get a quote →
-            </Link>
-            <MobileMenu links={NAV_LINKS} />
-          </div>
-        </Container>
-      </header>
-    </>
+          ))}
+          <ThemeToggle />
+          <Link className="btn btn-primary" href="/quote">
+            Get a quote
+          </Link>
+        </nav>
+      </div>
+    </header>
   );
 }

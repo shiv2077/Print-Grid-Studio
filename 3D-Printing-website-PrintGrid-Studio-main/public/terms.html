@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terms of service — PrintGrid Studio</title>
+  <script>
+    (function () {
+      var k = "printgrid-theme";
+      var stored = localStorage.getItem(k);
+      var preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", stored || preferred);
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="js/theme.js"></script>
+</head>
+<body>
+
+  <div class="status-strip">
+    <div class="wrap">
+      Chennai &middot; Hyderabad pickup from late June 2026 &middot; Ships pan-India in 4 days
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="index.html" aria-label="PrintGrid Studio home">
+        PrintGrid
+        <span class="wordmark__sub">Studio &middot; 3D printing</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="nav-link" href="materials.html">Materials</a>
+        <a class="nav-link" href="index.html#how-it-works">How it works</a>
+        <a class="nav-link" href="index.html#pricing">Pricing</a>
+        <a class="nav-link" href="contact.html">Contact</a>
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle theme">
+          <span data-theme-label>DARK</span>
+        </button>
+        <a class="btn btn-primary" href="quote.html">Get a quote</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-head">
+      <div class="wrap">
+        <div class="eyebrow page-head__eyebrow">Terms of service</div>
+        <h1 class="display-2">Plain-English terms.</h1>
+        <p>Last updated: 2026-05-01</p>
+        <p class="lede">The contract between you and PrintGrid Studio when you place an order. We've tried to write it like humans actually talk.</p>
+      </div>
+    </section>
+
+    <section class="policy">
+      <div class="wrap">
+        <div class="prose">
+
+          <h2>Quotes and orders</h2>
+          <p>Quotes are valid for 7 days. Prices are in INR, exclusive of GST and shipping (both shown at checkout). An order is binding once payment clears via Razorpay.</p>
+
+          <h2>What we promise</h2>
+          <ul>
+            <li>To print using the parameters you select. We won't substitute material or finish without telling you first.</li>
+            <li>To flag printability issues (thin walls, unprintable overhangs, unit mismatches) before printing — not after.</li>
+            <li>Lead time of 3–5 days from when payment clears, plus transit time. Longer lead times are quoted in advance for batch jobs.</li>
+          </ul>
+
+          <h2>What we don't promise</h2>
+          <ul>
+            <li>Tolerances tighter than ± 0.15 mm without explicit prior agreement.</li>
+            <li>That every part will print successfully on the first try — we re-print free if a print fails for our reasons (machine, material, calibration). See the refund policy.</li>
+            <li>Compatibility with end-use applications you haven't disclosed. If a part is for medical, aerospace, food-contact, or load-bearing safety-critical use, tell us before ordering.</li>
+          </ul>
+
+          <h2>Liability</h2>
+          <p>Our liability per order is capped at the order's total value. We are not liable for indirect or consequential damages. This isn't a legal opinion — talk to a lawyer if you're shipping safety-critical parts.</p>
+
+          <h2>Intellectual property</h2>
+          <p>You retain all rights to models you upload. We do not claim ownership and we do not reuse your designs. Print outputs are yours upon delivery and payment.</p>
+
+          <h2>Disputes</h2>
+          <p>Indian law applies. Jurisdiction: courts in Chennai.</p>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="site-footer__copy">&copy; 2026 PrintGrid Studio &middot; Chennai</div>
+      <ul class="site-footer__links">
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="terms.html">Terms</a></li>
+        <li><a href="refund.html">Refund</a></li>
+        <li><a href="shipping.html">Shipping</a></li>
+      </ul>
+    </div>
+  </footer>
+
+</body>
+</html>

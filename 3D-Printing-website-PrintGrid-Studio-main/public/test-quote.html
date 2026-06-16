@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Quote engine — diagnostic</title>
+  <script>
+    (function () {
+      var k = "printgrid-theme";
+      var stored = localStorage.getItem(k);
+      var preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", stored || preferred);
+    })();
+  </script>
+  <style>
+    body { font-family: ui-monospace, Menlo, Consolas, monospace; max-width: 920px; margin: 24px auto; padding: 0 16px; }
+    h1 { font-family: system-ui, sans-serif; font-size: 24px; }
+    fieldset { margin: 16px 0; padding: 12px 16px; border: 1px solid #999; }
+    legend { font-weight: 600; padding: 0 6px; }
+    label { display: block; margin: 8px 0; }
+    input, select { font: inherit; padding: 2px 4px; }
+    input[type="range"] { vertical-align: middle; }
+    pre { background: #f1f1ee; padding: 12px; overflow: auto; font-size: 13px; line-height: 1.4; }
+    .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+  <h1>Quote engine — diagnostic</h1>
+  <p>Standalone test for <code>js/stl.js</code> + <code>js/pricing.js</code>. No styles.css. Math only.</p>
+  <p>Build envelope: 256 &times; 256 &times; 256 mm (P1S).</p>
+  <p><strong>Note:</strong> ES modules require this page to be served over <code>http://</code>, not <code>file://</code>.
+     Run a local server (<code>python -m http.server</code> in <code>public/</code>, then open <code>http://localhost:8000/test-quote.html</code>).</p>
+
+  <fieldset>
+    <legend>1. Upload STL</legend>
+    <input id="stl-file" type="file" accept=".stl" />
+  </fieldset>
+
+  <fieldset>
+    <legend>2. STL stats</legend>
+    <pre id="stl-out">No file loaded.</pre>
+  </fieldset>
+
+  <fieldset>
+    <legend>3. Quote parameters</legend>
+    <form id="quote-form">
+      <label>Material
+        <select name="materialSlug">
+          <option value="pla-plus">PLA+</option>
+          <option value="pla-lw">PLA LW</option>
+          <option value="petg">PETG</option>
+          <option value="abs">ABS</option>
+          <option value="tpu-95a">TPU 95A</option>
+          <option value="pa6">PA6</option>
+          <option value="pa-cf">PA-CF</option>
+        </select>
+      </label>
+      <label>Layer height (mm)
+        <input name="layerHeight" type="number" step="0.04" min="0.12" max="0.28" value="0.20" />
+      </label>
+      <label class="row">Infill (%)
+        <input name="infillPct" type="range" min="0" max="100" step="5" value="20" />
+        <output id="infill-display">20</output>
+      </label>
+      <label class="row">Walls
+        <input name="walls" type="range" min="2" max="6" step="1" value="2" />
+        <output id="walls-display">2</output>
+      </label>
+      <label>Quantity
+        <input name="quantity" type="number" min="1" max="500" value="1" />
+      </label>
+      <label>Finish
+        <select name="finish">
+          <option value="as-printed">As-printed</option>
+          <option value="sanded">Sanded</option>
+          <option value="primer">Primer</option>
+          <option value="paint">Paint</option>
+        </select>
+      </label>
+      <label class="row">
+        <input name="multicolor" type="checkbox" />
+        Multicolor (AMS) — adds 20%
+      </label>
+    </form>
+  </fieldset>
+
+  <fieldset>
+    <legend>4. Quote breakdown</legend>
+    <pre id="quote-out">Upload an STL first.</pre>
+  </fieldset>
+
+  <script type="module">
+    import { parseSTL } from './js/stl.js';
+    import { computeQuote } from './js/pricing.js';
+
+    const fileInput      = document.getElementById('stl-file');
+    const stlOut         = document.getElementById('stl-out');
+    const quoteOut       = document.getElementById('quote-out');
+    const form           = document.getElementById('quote-form');
+    const infillDisplay  = document.getElementById('infill-display');
+    const wallsDisplay   = document.getElementById('walls-display');
+
+    let stl = null;
+
+    fileInput.addEventListener('change', async (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      try {
+        const buf = await f.arrayBuffer();
+        stl = parseSTL(buf);
+        stlOut.textContent = JSON.stringify(stl, null, 2);
+        recompute();
+      } catch (err) {
+        stlOut.textContent = 'Parse error: ' + err.message;
+        stl = null;
+      }
+    });
+
+    form.addEventListener('input', () => {
+      infillDisplay.textContent = form.infillPct.value;
+      wallsDisplay.textContent  = form.walls.value;
+      recompute();
+    });
+
+    function recompute() {
+      if (!stl) return;
+      const fd = new FormData(form);
+      const filesArr = [{
+        filename:     'test.stl',
+        volumeCm3:    stl.volumeCm3,
+        bbox:         stl.bbox,
+        materialSlug: fd.get('materialSlug'),
+        layerHeight:  parseFloat(fd.get('layerHeight')),
+        infillPct:    parseFloat(fd.get('infillPct')),
+        walls:        parseInt(fd.get('walls'), 10),
+      }];
+      const defaults = {
+        quantity:   parseInt(fd.get('quantity'), 10),
+        finish:     fd.get('finish'),
+        multicolor: form.multicolor.checked,
+      };
+      try {
+        const q = computeQuote(filesArr, defaults, {});
+        quoteOut.textContent = JSON.stringify(q, null, 2);
+      } catch (err) {
+        quoteOut.textContent = 'Quote error: ' + err.message;
+      }
+    }
+  </script>
+
+</body>
+</html>
