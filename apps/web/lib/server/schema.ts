@@ -1,5 +1,6 @@
 import {
   pgTable,
+  pgEnum,
   uuid,
   text,
   integer,
@@ -11,6 +12,12 @@ import {
 
 // All money is INTEGER PAISE. Mirrors supabase/migrations/0001_init.sql.
 
+// Fulfillment timeline status (separate from the payment `status`). See 0003.
+export const fulfillmentStatusEnum = pgEnum('fulfillment_status', [
+  'uploaded', 'under_review', 'approved', 'printing',
+  'post_processing', 'quality_check', 'packed', 'shipped', 'delivered',
+]);
+
 export const orders = pgTable(
   'orders',
   {
@@ -20,6 +27,7 @@ export const orders = pgTable(
     amountPaise: integer('amount_paise').notNull(),
     currency: text('currency').notNull().default('INR'),
     serverVolumeMm3: doublePrecision('server_volume_mm3'),
+    fulfillmentStatus: fulfillmentStatusEnum('fulfillment_status').notNull().default('uploaded'),
     email: text('email'),
     shipName: text('ship_name'),
     shipPhone: text('ship_phone'),
@@ -62,7 +70,25 @@ export const orderFiles = pgTable(
   }),
 );
 
+export const orderStatusHistory = pgTable(
+  'order_status_history',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    orderId: uuid('order_id')
+      .notNull()
+      .references(() => orders.id, { onDelete: 'cascade' }),
+    status: fulfillmentStatusEnum('status').notNull(),
+    note: text('note'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    orderIdx: index('order_status_history_order_id_idx').on(t.orderId),
+  }),
+);
+
 export type OrderRow = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
 export type OrderFileRow = typeof orderFiles.$inferSelect;
 export type NewOrderFile = typeof orderFiles.$inferInsert;
+export type OrderStatusHistoryRow = typeof orderStatusHistory.$inferSelect;
+

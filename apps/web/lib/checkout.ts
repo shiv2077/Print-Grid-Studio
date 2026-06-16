@@ -19,11 +19,20 @@ export interface CreateOrderResponse {
   key_id: string;
 }
 
+export interface OrderStatusHistoryEntry {
+  status: string;
+  note: string | null;
+  at: string;
+}
+
 export interface OrderStatus {
   order_code: string;
   status: string;
   amount_paise: number;
   currency: string;
+  fulfillment_status?: string;
+  created_at?: string;
+  history?: OrderStatusHistoryEntry[];
 }
 
 export interface OrderFileInput {

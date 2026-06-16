@@ -324,6 +324,23 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .order-status { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.14em; padding: 6px 10px; border: 1px solid var(--ink-10); }
 .order-status--paid { color: var(--paper); background: var(--accent); border-color: var(--accent); }
 
+/* Fulfillment timeline */
+.timeline__heading { font-family: var(--font-sans); font-weight: 600; font-size: 14px; margin-top: 8px; color: var(--ink); }
+.timeline { display: flex; flex-direction: column; margin-top: 4px; }
+.timeline__row { position: relative; display: flex; gap: 14px; padding-bottom: 18px; }
+.timeline__row:last-child { padding-bottom: 0; }
+.timeline__row::before { content: ''; position: absolute; left: 5px; top: 16px; bottom: -2px; width: 1px; background: var(--ink-10); }
+.timeline__row:last-child::before { display: none; }
+.timeline__dot { flex-shrink: 0; width: 11px; height: 11px; margin-top: 3px; border-radius: 50%; border: 1px solid var(--ink-10); background: var(--paper); z-index: 1; }
+.timeline__row.is-done .timeline__dot { background: var(--ink); border-color: var(--ink); }
+.timeline__row.is-current .timeline__dot { background: var(--accent); border-color: var(--accent); }
+.timeline__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.timeline__label { font-size: 14px; color: var(--ink-60); }
+.timeline__row.is-done .timeline__label { color: var(--ink); font-weight: 500; }
+.timeline__current-tag { color: var(--accent); font-weight: 600; }
+.timeline__time { font-size: 11px; color: var(--ink-60); letter-spacing: 0.02em; }
+.timeline__note { font-size: 12px; color: var(--ink-60); }
+
 /* ---------- Mobile ---------- */
 @media (max-width: 720px) {
   .site-nav { gap: 14px; }
