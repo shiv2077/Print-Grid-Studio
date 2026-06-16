@@ -55,5 +55,9 @@ Vercel → Project → Domains → add `printgrid.co.in` and follow the DNS reco
 
 ## Notes
 - The migration is already applied to the Supabase DB (`supabase/migrations/0001_init.sql`).
-- The `apps/api` NestJS app is now superseded by the `/api/*` route handlers and
-  is not deployed. It can be removed in a cleanup pass.
+  A second migration (`0002_shipping_address.sql`) adds shipping-address columns — apply it
+  before the first real order (see DEPLOY_RUNBOOK.md).
+- The standalone NestJS backend has been **removed**; the entire app (site + API) is
+  `apps/web`, deployed in one shot. `NEXT_PUBLIC_API_URL` is no longer used — the client
+  calls same-origin `/api/*`.
+- See **DEPLOY_RUNBOOK.md** for the exact ordered click-through.
