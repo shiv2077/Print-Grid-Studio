@@ -8,7 +8,7 @@
   --paper:      #FAFAF7;
   --paper-warm: #F2EFE8;
   --paper-cool: #F4F4F1;
-  --accent:     #D14620;
+  --accent:     #BC3A14; /* AA-compliant (5.35:1 on paper); was #D14620 at 4.36 */
   --accent-deep:#A12F12;
 
   --ink-10: rgba(10, 10, 10, 0.10);
@@ -64,6 +64,14 @@ a { color: var(--ink); text-decoration: none; }
 a:hover { color: var(--accent); }
 img, svg { display: block; max-width: 100%; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+/* ---------- Accessibility ---------- */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.skip-link { position: absolute; left: 8px; top: -56px; z-index: 100; background: var(--ink); color: var(--paper); padding: 10px 14px; font-size: 13px; transition: top 120ms ease; }
+.skip-link:focus { top: 8px; color: var(--paper); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+textarea:focus-visible, [tabindex]:focus-visible, [role='button']:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ---------- Layout ---------- */
 .wrap { max-width: var(--wrap-max); margin: 0 auto; padding: 0 var(--wrap-pad-x); }
@@ -291,6 +299,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   transition: border-color 120ms ease, background 120ms ease;
 }
 .quote-dropzone:hover, .quote-dropzone:focus, .quote-dropzone.is-over { outline: none; border-color: var(--ink); background: var(--paper); }
+.quote-dropzone:focus-within { border-color: var(--ink); outline: 2px solid var(--accent); outline-offset: 2px; }
 .quote-dropzone__title { font-family: var(--font-sans); font-weight: 600; font-size: 18px; color: var(--ink); margin-bottom: 4px; }
 .quote-dropzone__sub { color: var(--ink-60); font-size: 14px; margin-bottom: 16px; }
 .quote-dropzone__hint { color: var(--ink-60); font-size: 12px; }

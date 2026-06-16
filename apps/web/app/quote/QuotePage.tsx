@@ -306,14 +306,14 @@ export function QuotePage() {
                   type="file"
                   accept=".stl,.obj,.3mf,model/stl,application/octet-stream"
                   multiple
-                  className="hidden"
-                  aria-label="Upload STL files"
+                  className="sr-only"
+                  aria-label="Upload STL, OBJ or 3MF files"
                   onChange={(e) => { acceptFiles(e.target.files ? Array.from(e.target.files) : []); e.target.value = ''; }}
                 />
               </label>
 
               {dropErrors.length > 0 && (
-                <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div role="alert" style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {dropErrors.map((e, i) => (
                     <p className="quote-warning" key={i}>{e}</p>
                   ))}
