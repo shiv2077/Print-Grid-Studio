@@ -16,6 +16,7 @@ import {
   type Finish,
 } from '@printgrid/pricing';
 import { createOrder, loadRazorpay, openCheckout, pollUntilPaid } from '@/lib/checkout';
+import { parseModel } from '@/lib/parse-model';
 import { initialState, reducer } from './state';
 
 type CheckoutState =
@@ -66,7 +67,7 @@ export function QuotePage() {
     const remaining = MAX_FILES - filesRef.current.size;
     for (const f of files) {
       if (ok.length >= remaining) { errs.push(`Only ${MAX_FILES} files per quote — ${f.name} dropped`); continue; }
-      if (!/\.stl$/i.test(f.name)) { errs.push(`${f.name}: not an STL file`); continue; }
+      if (!/\.(stl|obj|3mf)$/i.test(f.name)) { errs.push(`${f.name}: must be STL, OBJ or 3MF`); continue; }
       if (f.size > MAX_BYTES) { errs.push(`${f.name}: exceeds 100MB`); continue; }
       if (f.size === 0) { errs.push(`${f.name}: file is empty`); continue; }
       ok.push(f);
@@ -89,7 +90,10 @@ export function QuotePage() {
       const file = filesRef.current.get(row.id);
       if (!file) return;
       parsingRef.current.add(row.id);
-      parse(file)
+      const ext = file.name.toLowerCase().split('.').pop();
+      // STL uses the fast off-thread worker; OBJ/3MF parse via three loaders.
+      const parsing = ext === 'obj' || ext === '3mf' ? parseModel(file) : parse(file);
+      parsing
         .then((result) => dispatch({ type: 'FILE_PARSED', id: row.id, result }))
         .catch((err: { message?: string }) =>
           dispatch({ type: 'FILE_PARSE_ERROR', id: row.id, message: String(err?.message ?? 'Parse failed') }),
@@ -237,12 +241,12 @@ export function QuotePage() {
                 onDragOver={(e) => { e.preventDefault(); setDropActive(true); }}
                 onDragLeave={(e) => { e.preventDefault(); setDropActive(false); }}
               >
-                <p className="quote-dropzone__title">Drop one or more STLs here</p>
+                <p className="quote-dropzone__title">Drop STL, OBJ or 3MF files here</p>
                 <p className="quote-dropzone__sub">Or click to browse</p>
                 <p className="quote-dropzone__hint mono">Max 100 MB each · up to 10 files</p>
                 <input
                   type="file"
-                  accept=".stl,model/stl,application/octet-stream"
+                  accept=".stl,.obj,.3mf,model/stl,application/octet-stream"
                   multiple
                   className="hidden"
                   aria-label="Upload STL files"

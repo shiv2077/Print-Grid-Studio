@@ -1,11 +1,11 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { ContactShadows, OrbitControls } from '@react-three/drei';
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import * as THREE from 'three';
 import type { MaterialKey } from '@printgrid/pricing';
+import { loadModelObject } from '@/lib/parse-model';
 
 const MATERIAL_COLORS: Readonly<Record<MaterialKey, { color: string; opacity: number }>> = {
   'pla-plus': { color: '#EAEAEA', opacity: 1 },
@@ -25,54 +25,57 @@ export interface StlViewerProps {
   triangleCount: number;
 }
 
+/** Center at origin, scale longest axis to 80, and apply the material colour. */
+function normalize(root: THREE.Object3D, color: string, opacity: number, isHighPoly: boolean) {
+  const box = new THREE.Box3().setFromObject(root);
+  const center = new THREE.Vector3();
+  const size = new THREE.Vector3();
+  box.getCenter(center);
+  box.getSize(size);
+  const longest = Math.max(size.x, size.y, size.z) || 1;
+  const factor = 80 / longest;
+  root.scale.setScalar(factor);
+  root.position.copy(center).multiplyScalar(-factor);
+  root.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    mesh.material = isHighPoly
+      ? new THREE.MeshBasicMaterial({ color })
+      : new THREE.MeshStandardMaterial({ color, metalness: 0.05, roughness: 0.65, transparent: opacity < 1, opacity });
+  });
+}
+
 export function StlViewer({ file, materialKey, triangleCount }: StlViewerProps) {
-  const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
+  const [object, setObject] = useState<THREE.Object3D | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    const loader = new STLLoader();
-    file
-      .arrayBuffer()
-      .then((buf) => {
+    setError(null);
+    loadModelObject(file)
+      .then((root) => {
         if (cancelled) return;
-        try {
-          const geom = loader.parse(buf);
-          geom.computeVertexNormals();
-          geom.computeBoundingBox();
-          const bbox = geom.boundingBox;
-          if (bbox) {
-            const center = new THREE.Vector3();
-            bbox.getCenter(center);
-            geom.translate(-center.x, -center.y, -center.z);
-          }
-          setGeometry(geom);
-          setError(null);
-        } catch {
-          setError('Could not render preview');
-        }
+        const spec = MATERIAL_COLORS[materialKey];
+        normalize(root, spec.color, spec.opacity, triangleCount > HIGH_POLY);
+        setObject(root);
       })
       .catch(() => {
-        if (!cancelled) setError('Could not read file');
+        if (!cancelled) setError('Could not render preview');
       });
     return () => {
       cancelled = true;
-      setGeometry((g) => {
-        g?.dispose();
-        return null;
-      });
+      setObject(null);
     };
-  }, [file]);
+  }, [file, materialKey, triangleCount]);
 
-  const colorSpec = MATERIAL_COLORS[materialKey];
   const isHighPoly = triangleCount > HIGH_POLY;
 
   return (
     <div className="quote-viewer">
-      <span className="quote-viewer__label">STL · preview</span>
+      <span className="quote-viewer__label">3D · preview</span>
       {error ? (
         <div className="quote-viewer__empty">{error}</div>
-      ) : !geometry ? (
+      ) : !object ? (
         <div className="quote-viewer__empty">Loading preview…</div>
       ) : (
         <>
@@ -81,10 +84,8 @@ export function StlViewer({ file, materialKey, triangleCount }: StlViewerProps) 
             <directionalLight position={[80, 120, 60]} intensity={0.9} />
             <directionalLight position={[-80, 40, -60]} intensity={0.35} />
             <Suspense fallback={null}>
-              <CenteredModel geometry={geometry} colorSpec={colorSpec} isHighPoly={isHighPoly} />
-              {!isHighPoly && (
-                <ContactShadows position={[0, -50, 0]} opacity={0.3} scale={200} blur={2} far={120} />
-              )}
+              <primitive object={object} />
+              {!isHighPoly && <ContactShadows position={[0, -50, 0]} opacity={0.3} scale={200} blur={2} far={120} />}
             </Suspense>
             <OrbitControls
               enablePan={false}
@@ -101,45 +102,5 @@ export function StlViewer({ file, materialKey, triangleCount }: StlViewerProps) 
         </>
       )}
     </div>
-  );
-}
-
-function CenteredModel({
-  geometry,
-  colorSpec,
-  isHighPoly,
-}: {
-  geometry: THREE.BufferGeometry;
-  colorSpec: { color: string; opacity: number };
-  isHighPoly: boolean;
-}) {
-  const scaledGeometry = useMemo(() => {
-    const cloned = geometry.clone();
-    cloned.computeBoundingBox();
-    const bbox = cloned.boundingBox;
-    if (!bbox) return cloned;
-    const size = new THREE.Vector3();
-    bbox.getSize(size);
-    const longest = Math.max(size.x, size.y, size.z) || 1;
-    cloned.scale(80 / longest, 80 / longest, 80 / longest);
-    return cloned;
-  }, [geometry]);
-
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  return (
-    <mesh ref={meshRef} geometry={scaledGeometry}>
-      {isHighPoly ? (
-        <meshBasicMaterial color={colorSpec.color} />
-      ) : (
-        <meshStandardMaterial
-          color={colorSpec.color}
-          metalness={0.05}
-          roughness={0.65}
-          transparent={colorSpec.opacity < 1}
-          opacity={colorSpec.opacity}
-        />
-      )}
-    </mesh>
   );
 }
