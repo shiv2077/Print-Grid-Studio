@@ -11,6 +11,11 @@ export interface EmailResult {
 export async function sendOrderConfirmation(order: OrderRow): Promise<EmailResult> {
   if (!order.email) return { sent: false, reason: 'no customer email' };
   const apiKey = process.env.RESEND_API_KEY;
+  // No key -> clean no-op, no DB query, no throw.
+  if (!apiKey) {
+    console.warn(`[email] RESEND_API_KEY missing — confirmation for ${order.orderCode} NOT sent`);
+    return { sent: false, reason: 'RESEND_API_KEY not set' };
+  }
   const from = process.env.RESEND_FROM || 'PrintGrid Studio <orders@printgrid.co.in>';
   const files = await filesForOrder(order.id);
 
@@ -23,11 +28,6 @@ export async function sendOrderConfirmation(order: OrderRow): Promise<EmailResul
     <ul>${lines}</ul>
     <p><strong>Total paid: ${formatINR(order.amountPaise)}</strong> (incl. 18% GST)</p>
     <p>We'll email you tracking once your print ships.</p>`;
-
-  if (!apiKey) {
-    console.warn(`[email] RESEND_API_KEY missing — confirmation for ${order.orderCode} NOT sent`);
-    return { sent: false, reason: 'RESEND_API_KEY not set' };
-  }
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
