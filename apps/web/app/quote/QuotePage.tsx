@@ -136,20 +136,21 @@ export function QuotePage() {
 
   const onContinue = useCallback(async () => {
     const doneFiles = state.files.filter((f) => f.parse.status === 'done');
-    if (doneFiles.length !== 1) {
-      setCheckout({ phase: 'error', message: 'Checkout currently supports a single file per order. Multi-file orders are coming soon.' });
+    if (doneFiles.length === 0) {
+      setCheckout({ phase: 'error', message: 'Add at least one file before checking out.' });
       return;
     }
-    const row = doneFiles[0];
-    const file = row ? filesRef.current.get(row.id) : undefined;
-    if (!row || !file) {
-      setCheckout({ phase: 'error', message: 'Could not read the uploaded file. Please re-add it.' });
+    const orderFiles = doneFiles
+      .map((row) => ({ file: filesRef.current.get(row.id), config: row.config }))
+      .filter((x): x is { file: File; config: typeof x.config } => !!x.file);
+    if (orderFiles.length !== doneFiles.length) {
+      setCheckout({ phase: 'error', message: 'Could not read one of the files. Please re-add it.' });
       return;
     }
     setCheckout({ phase: 'creating' });
     try {
-      // The SERVER reprices from its own volume measurement; we send no amount.
-      const order = await createOrder(file, row.config, { rush: state.rush, promo: state.appliedPromo });
+      // The SERVER reprices from its own volume measurement of every file; we send no amount.
+      const order = await createOrder(orderFiles, { rush: state.rush, promo: state.appliedPromo });
       await loadRazorpay();
       setCheckout({ phase: 'awaiting' });
       openCheckout({

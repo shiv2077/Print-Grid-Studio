@@ -1,7 +1,7 @@
-// Client checkout helpers. The browser NEVER computes or trusts the price, and
-// NEVER marks an order paid — it submits the file, opens Razorpay with the
-// server-issued order id, then POLLS the server (which only flips to `paid`
-// after a signature-verified webhook).
+// Client checkout helpers. Same-origin /api/* routes (one Vercel deploy).
+// The browser NEVER computes or trusts the price, and NEVER marks an order
+// paid — it submits the files, opens Razorpay with the server-issued order id,
+// then POLLS the server (which only flips to `paid` after a verified webhook).
 import type { FileRowConfig } from '@/app/quote/state';
 
 declare global {
@@ -9,8 +9,6 @@ declare global {
     Razorpay?: new (options: Record<string, unknown>) => { open: () => void };
   }
 }
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 export interface CreateOrderResponse {
   order_code: string;
@@ -27,23 +25,29 @@ export interface OrderStatus {
   currency: string;
 }
 
+export interface OrderFileInput {
+  file: File;
+  config: FileRowConfig;
+}
+
 export async function createOrder(
-  file: File,
-  config: FileRowConfig,
-  opts: { rush?: boolean; promo?: string | null; email?: string | null } = {},
+  files: OrderFileInput[],
+  opts: { rush?: boolean; promo?: string | null; addressState?: string | null; email?: string | null } = {},
 ): Promise<CreateOrderResponse> {
   const fd = new FormData();
-  fd.append('file', file, file.name);
-  fd.append('materialKey', config.materialKey);
-  fd.append('layerHeight', config.layerHeight);
-  fd.append('finish', config.finish);
-  fd.append('multicolor', String(config.multicolor));
-  fd.append('qty', String(config.qty));
-  if (opts.rush) fd.append('rush', 'true');
-  if (opts.promo) fd.append('promo', opts.promo);
-  if (opts.email) fd.append('email', opts.email);
+  for (const { file } of files) fd.append('file', file, file.name);
+  fd.append(
+    'meta',
+    JSON.stringify({
+      configs: files.map((f) => f.config),
+      rush: opts.rush ?? false,
+      promo: opts.promo ?? null,
+      addressState: opts.addressState ?? null,
+      email: opts.email ?? null,
+    }),
+  );
 
-  const res = await fetch(`${API_BASE}/orders`, { method: 'POST', body: fd });
+  const res = await fetch('/api/orders', { method: 'POST', body: fd });
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
     throw new Error(`Order creation failed (${res.status}). ${detail}`.trim());
@@ -52,7 +56,7 @@ export async function createOrder(
 }
 
 export async function getOrderStatus(code: string): Promise<OrderStatus> {
-  const res = await fetch(`${API_BASE}/orders/${encodeURIComponent(code)}`);
+  const res = await fetch(`/api/orders/${encodeURIComponent(code)}`);
   if (!res.ok) throw new Error(`Status check failed (${res.status})`);
   return (await res.json()) as OrderStatus;
 }
@@ -112,7 +116,6 @@ export function openCheckout(args: {
     name: 'PrintGrid Studio',
     description: `Order ${args.order.order_code}`,
     prefill: args.email ? { email: args.email } : undefined,
-    // The success handler does NOT confirm payment — it only starts polling.
     handler: () => args.onSuccess(),
     modal: { ondismiss: () => args.onDismiss() },
   });

@@ -1,0 +1,14 @@
+import { findOrderByCode } from '@/lib/server/orders';
+
+export const runtime = 'nodejs';
+
+export async function GET(_req: Request, { params }: { params: { code: string } }) {
+  const row = await findOrderByCode(params.code.toUpperCase());
+  if (!row) return Response.json({ error: 'Order not found' }, { status: 404 });
+  return Response.json({
+    order_code: row.orderCode,
+    status: row.status,
+    amount_paise: row.amountPaise,
+    currency: row.currency,
+  });
+}
