@@ -44,7 +44,7 @@
 .v2-gridlines {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1; /* sits behind content within .v2-root's stacking context */
   pointer-events: none;
   display: flex;
   justify-content: center;
@@ -59,7 +59,8 @@
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
   mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
 }
-.v2-root > *:not(.v2-gridlines) { position: relative; z-index: 1; }
+/* content paints above the z-index:-1 grid layer naturally; do NOT force
+   position on children (it would clobber the fixed nav's containing block). */
 
 /* ---------- type scale (DESIGN_V2 §2) ---------- */
 .v2-display-xl {
@@ -271,7 +272,12 @@
 .v2-hero { padding-top: clamp(120px, 16vh, 180px); padding-bottom: clamp(56px, 8vw, 96px); }
 .v2-hero__grid { display: grid; gap: clamp(32px, 5vw, 56px); align-items: center; }
 .v2-hero__eyebrow { margin-bottom: 22px; }
-.v2-hero__title { margin-bottom: 24px; }
+.v2-hero__title {
+  margin-bottom: 24px;
+  /* sized to fit the hero text column without ragged wrapping */
+  font-size: clamp(2.25rem, 4.4vw, 3.3rem);
+  text-wrap: balance;
+}
 .v2-hero__title .v2-accent { color: var(--v2-accent); }
 .v2-hero__lede { max-width: 46ch; margin-bottom: 32px; }
 .v2-hero__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 32px; }
@@ -318,7 +324,7 @@
 .v2-caliper__line::after { right: 0; }
 
 @media (min-width: 940px) {
-  .v2-hero__grid { grid-template-columns: 1.05fr 0.95fr; }
+  .v2-hero__grid { grid-template-columns: 1.15fr 0.85fr; }
 }
 
 /* ============================================================

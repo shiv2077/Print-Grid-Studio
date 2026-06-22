@@ -124,7 +124,7 @@ for (const p of pts) for (let k = 0; k < 3; k++) flat.push(Math.round(((p[k] - c
 // Project the normalised points with a fixed isometric-ish rotation and draw
 // them as orange dots on near-black. Downsampled for file size.
 function projectSvg() {
-  const W = 640, cx = W / 2, cy = W / 2, scale = W * 0.34;
+  const W = 640, cx = W / 2, cy = W / 2, scale = W * 0.42;
   const ax = -0.5, ay = 0.7; // fixed view angles
   const cax = Math.cos(ax), sax = Math.sin(ax), cay = Math.cos(ay), say = Math.sin(ay);
   const proj = [];
