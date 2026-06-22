@@ -1,0 +1,48 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@printgrid/pricing": "workspace:*",
+    "@hookform/resolvers": "^3.9.0",
+    "@react-three/drei": "^9.114.0",
+    "@react-three/fiber": "^8.17.10",
+    "@supabase/supabase-js": "^2.45.4",
+    "clsx": "^2.1.1",
+    "drizzle-orm": "^0.33.0",
+    "jszip": "^3.10.1",
+    "pdf-lib": "^1.17.1",
+    "lucide-react": "^0.453.0",
+    "next": "14.2.15",
+    "postgres": "^3.4.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.0",
+    "three": "^0.169.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/three": "^0.169.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "@vitest/ui": "^2.1.2",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.15",
+    "jsdom": "^25.0.1",
+    "typescript": "^5",
+    "vitest": "^2.1.2"
+  }
+}

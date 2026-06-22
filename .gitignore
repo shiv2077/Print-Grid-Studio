@@ -11,6 +11,9 @@ coverage/
 out/
 build/
 
+# build output (NestJS api, pricing package, tsc)
+dist/
+
 # misc
 .DS_Store
 *.pem
