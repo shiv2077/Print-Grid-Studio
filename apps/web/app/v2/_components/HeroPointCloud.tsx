@@ -39,7 +39,7 @@ export default function HeroPointCloud() {
     const draw = () => {
       const w = canvas.width, h = canvas.height;
       const cx = w / 2, cy = h / 2;
-      const scale = Math.min(w, h) * 0.44;
+      const scale = Math.min(w, h) * 0.48;
       ctx.fillStyle = '#0A0A0A';
       ctx.fillRect(0, 0, w, h);
       const ca = Math.cos(angle), sa = Math.sin(angle);
