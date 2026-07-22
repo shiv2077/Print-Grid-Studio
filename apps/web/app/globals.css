@@ -26,6 +26,25 @@
   --scrim:          rgba(10, 10, 10, 0.5);
 }
 
+/* ---------- Pango-inspired revamp tokens ----------
+   New, additive palette for the dark-only revamp (Homepage, Materials,
+   Orders, Quote — rolled out one phase at a time). Named --accent-teal /
+   --accent-teal-strong (not --accent / --accent-strong) so they never
+   collide with the existing orange --accent used by not-yet-migrated pages
+   and components. Exact hex values are a starting point; verify AA contrast
+   before each page that consumes them ships. */
+:root {
+  --canvas: #0A0B0D;
+  --surface: #131519;
+  --text: #EDEDED;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  --accent-teal: #2DD4BF;
+  --accent-teal-strong: #0D9488;
+  --line: rgba(237, 237, 237, 0.10);
+  --line-strong: rgba(237, 237, 237, 0.18);
+}
+
 [data-theme="dark"] {
   --ink:        #F0EFEA;
   --paper:      #0B0B0C;
