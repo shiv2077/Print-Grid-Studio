@@ -1,7 +1,9 @@
+// apps/web/app/quote/QuotePage.tsx
 'use client';
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+import clsx from 'clsx';
 import { useStlParser } from '@/lib/use-stl-parser';
 import {
   quote,
@@ -20,6 +22,9 @@ import { parseModel } from '@/lib/parse-model';
 import { analyzeManufacturability } from '@/lib/manufacturability';
 import { validateAddress, type ShippingAddress, type AddressField } from '@/lib/address';
 import { initialState, reducer } from './state';
+import { Reveal } from '@/components/ui/Reveal';
+import { AgentInput } from '@/components/ui/AgentInput';
+import styles from './QuotePage.module.css';
 
 const EMPTY_ADDRESS: ShippingAddress = {
   name: '', phone: '', email: '', line1: '', line2: '', city: '', state: '', pincode: '',
@@ -42,6 +47,12 @@ const FINISH_LABELS: Record<Finish, string> = {
   primer: 'Primer',
   gloss: 'Gloss',
 };
+
+const DROPZONE_HINTS = [
+  'Drop an STL to see the real price…',
+  'Upload OBJ or 3MF too…',
+  'Nothing leaves your device until checkout…',
+] as const;
 
 const MAX_FILES = 10;
 const MAX_BYTES = 100 * 1024 * 1024;
@@ -150,10 +161,10 @@ export function QuotePage() {
   const setField = (k: AddressField) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setAddr((a) => ({ ...a, [k]: e.target.value }));
   const field = (k: AddressField, label: string, placeholder?: string, inputMode?: 'numeric' | 'tel' | 'email') => (
-    <label className="quote-row">
-      <span className="quote-row__label">{label}</span>
+    <label className={styles.row}>
+      <span className={styles.rowLabel}>{label}</span>
       <input type="text" value={addr[k] ?? ''} onChange={setField(k)} placeholder={placeholder} inputMode={inputMode} />
-      {addrErrors[k] && <span className="quote-warning" style={{ marginTop: 4 }}>{addrErrors[k]}</span>}
+      {addrErrors[k] && <span className={clsx(styles.warning, styles.fieldError)}>{addrErrors[k]}</span>}
     </label>
   );
   const busy = checkout.phase === 'creating' || checkout.phase === 'awaiting' || checkout.phase === 'confirming';
@@ -242,28 +253,30 @@ export function QuotePage() {
 
   return (
     <>
-      <section className="page-head">
+      <section className={styles.head}>
         <div className="wrap">
-          <div className="eyebrow page-head__eyebrow">Quote · live calculator</div>
-          <h1 className="display-2">Drop a file. See a price.</h1>
-          <p className="lede">
-            STLs are parsed in your browser. Nothing leaves your device until you check out. The
-            number on the right is the number you pay — including 18% GST and the 2% payment fee.
-          </p>
+          <Reveal>
+            <div className={styles.eyebrow}>Quote · live calculator</div>
+            <h1 className={styles.title}>Drop a file. See a price.</h1>
+            <p className={styles.lede}>
+              STLs are parsed in your browser. Nothing leaves your device until you check out. The
+              number on the right is the number you pay — including 18% GST and the 2% payment fee.
+            </p>
+          </Reveal>
         </div>
       </section>
 
-      <section className="quote">
+      <section className={styles.section}>
         <div className="wrap">
           {checkout.phase !== 'idle' && (
             <div
               role="status"
               aria-live="polite"
-              className={
-                'checkout-banner' +
-                (checkout.phase === 'paid' ? ' checkout-banner--paid' : '') +
-                (checkout.phase === 'error' ? ' checkout-banner--error' : '')
-              }
+              className={clsx(
+                styles.banner,
+                checkout.phase === 'paid' && styles.bannerPaid,
+                checkout.phase === 'error' && styles.bannerError,
+              )}
             >
               {checkout.phase === 'creating' && 'Creating your order…'}
               {checkout.phase === 'awaiting' && 'Opening the secure Razorpay window…'}
@@ -283,9 +296,9 @@ export function QuotePage() {
             </div>
           )}
 
-          <div className="quote-grid">
+          <div className={styles.grid}>
             {/* Left: upload + per-file controls */}
-            <div className="quote-col quote-col--left">
+            <Reveal className={styles.col}>
               {activeRow && activeRow.parse.status === 'done' && activeFile && (
                 <StlViewer
                   file={activeFile}
@@ -293,58 +306,60 @@ export function QuotePage() {
                   triangleCount={activeRow.parse.result.triangleCount}
                 />
               )}
-              <label
-                className={'quote-dropzone' + (dropActive ? ' is-over' : '')}
-                onDrop={(e) => { e.preventDefault(); setDropActive(false); acceptFiles(Array.from(e.dataTransfer.files)); }}
-                onDragOver={(e) => { e.preventDefault(); setDropActive(true); }}
-                onDragLeave={(e) => { e.preventDefault(); setDropActive(false); }}
-              >
-                <p className="quote-dropzone__title">Drop STL, OBJ or 3MF files here</p>
-                <p className="quote-dropzone__sub">Or click to browse</p>
-                <p className="quote-dropzone__hint mono">Max 100 MB each · up to 10 files</p>
-                <input
-                  type="file"
-                  accept=".stl,.obj,.3mf,model/stl,application/octet-stream"
-                  multiple
-                  className="sr-only"
-                  aria-label="Upload STL, OBJ or 3MF files"
-                  onChange={(e) => { acceptFiles(e.target.files ? Array.from(e.target.files) : []); e.target.value = ''; }}
-                />
-              </label>
+              <AgentInput placeholders={DROPZONE_HINTS}>
+                <label
+                  className={clsx(styles.dropzone, dropActive && styles.dropzoneOver)}
+                  onDrop={(e) => { e.preventDefault(); setDropActive(false); acceptFiles(Array.from(e.dataTransfer.files)); }}
+                  onDragOver={(e) => { e.preventDefault(); setDropActive(true); }}
+                  onDragLeave={(e) => { e.preventDefault(); setDropActive(false); }}
+                >
+                  <p className={styles.dropzoneTitle}>Drop STL, OBJ or 3MF files here</p>
+                  <p className={styles.dropzoneSub}>Or click to browse</p>
+                  <p className={clsx(styles.dropzoneHint, styles.mono)}>Max 100 MB each · up to 10 files</p>
+                  <input
+                    type="file"
+                    accept=".stl,.obj,.3mf,model/stl,application/octet-stream"
+                    multiple
+                    className={styles.srOnly}
+                    aria-label="Upload STL, OBJ or 3MF files"
+                    onChange={(e) => { acceptFiles(e.target.files ? Array.from(e.target.files) : []); e.target.value = ''; }}
+                  />
+                </label>
+              </AgentInput>
 
               {dropErrors.length > 0 && (
-                <div role="alert" style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div role="alert" className={styles.dropErrors}>
                   {dropErrors.map((e, i) => (
-                    <p className="quote-warning" key={i}>{e}</p>
+                    <p className={styles.warning} key={i}>{e}</p>
                   ))}
                 </div>
               )}
 
               {state.files.length > 0 && (
-                <div className="quote-files">
+                <div className={styles.files}>
                   {state.files.map((row) => {
                     const done = row.parse.status === 'done' ? row.parse.result : null;
                     const warnings = done
                       ? analyzeManufacturability({ volumeMm3: done.volumeMm3, bboxSize: done.bboxSize, triangleCount: done.triangleCount })
                       : [];
                     return (
-                      <div className="quote-file-card" key={row.id}>
-                        <div className="quote-file-card__header">
-                          <span className="quote-file-card__name">{row.fileName}</span>
-                          <button className="quote-file__remove" type="button" aria-label="Remove file" onClick={() => onRemove(row.id)}>×</button>
+                      <div className={styles.fileCard} key={row.id}>
+                        <div className={styles.fileCardHeader}>
+                          <span className={styles.fileCardName}>{row.fileName}</span>
+                          <button className={styles.fileRemove} type="button" aria-label="Remove file" onClick={() => onRemove(row.id)}>×</button>
                         </div>
-                        <div className="quote-file-card__stats mono">
+                        <div className={clsx(styles.fileCardStats, styles.mono)}>
                           {row.parse.status === 'parsing' && 'Parsing…'}
                           {row.parse.status === 'error' && row.parse.message}
                           {done && `${done.triangleCount.toLocaleString()} tris · ${(done.volumeMm3 / 1000).toFixed(1)} cm³ · ${done.bboxSize.map((d) => d.toFixed(0)).join('×')} mm`}
                         </div>
                         {warnings.map((w) => (
-                          <p className={`quote-warning quote-warning--${w.severity}`} key={w.code}>{w.message}</p>
+                          <p className={clsx(styles.warning, w.severity === 'error' && styles.warningError, w.severity === 'info' && styles.warningInfo)} key={w.code}>{w.message}</p>
                         ))}
 
-                        <div className="quote-controls">
-                          <label className="quote-row">
-                            <span className="quote-row__label">Material</span>
+                        <div className={styles.controls}>
+                          <label className={styles.row}>
+                            <span className={styles.rowLabel}>Material</span>
                             <select
                               value={row.config.materialKey}
                               onChange={(e) => dispatch({ type: 'UPDATE_CONFIG', id: row.id, patch: { materialKey: e.target.value as MaterialKey } })}
@@ -354,8 +369,8 @@ export function QuotePage() {
                               ))}
                             </select>
                           </label>
-                          <label className="quote-row">
-                            <span className="quote-row__label">Layer height</span>
+                          <label className={styles.row}>
+                            <span className={styles.rowLabel}>Layer height</span>
                             <select
                               value={row.config.layerHeight}
                               onChange={(e) => dispatch({ type: 'UPDATE_CONFIG', id: row.id, patch: { layerHeight: e.target.value as LayerHeight } })}
@@ -363,8 +378,8 @@ export function QuotePage() {
                               {LAYER_HEIGHTS.map((h) => <option key={h} value={h}>{h} mm</option>)}
                             </select>
                           </label>
-                          <label className="quote-row">
-                            <span className="quote-row__label">Finish</span>
+                          <label className={styles.row}>
+                            <span className={styles.rowLabel}>Finish</span>
                             <select
                               value={row.config.finish}
                               onChange={(e) => dispatch({ type: 'UPDATE_CONFIG', id: row.id, patch: { finish: e.target.value as Finish } })}
@@ -374,8 +389,8 @@ export function QuotePage() {
                               ))}
                             </select>
                           </label>
-                          <label className="quote-row">
-                            <span className="quote-row__label">Quantity</span>
+                          <label className={styles.row}>
+                            <span className={styles.rowLabel}>Quantity</span>
                             <input
                               type="number"
                               min={1}
@@ -384,7 +399,7 @@ export function QuotePage() {
                             />
                           </label>
                         </div>
-                        <label className="quote-row quote-row--check">
+                        <label className={clsx(styles.row, styles.rowCheck)}>
                           <input
                             type="checkbox"
                             checked={row.config.multicolor}
@@ -399,98 +414,98 @@ export function QuotePage() {
               )}
 
               {state.files.length > 0 && (
-                <div className="quote-file-card" style={{ marginTop: 16 }}>
-                  <div className="quote-file-card__header">
-                    <span className="quote-file-card__name">Shipping address</span>
+                <div className={clsx(styles.fileCard, styles.addressCard)}>
+                  <div className={styles.fileCardHeader}>
+                    <span className={styles.fileCardName}>Shipping address</span>
                   </div>
-                  <div className="quote-controls">
+                  <div className={styles.controls}>
                     {field('name', 'Full name')}
                     {field('phone', 'Phone', '10-digit mobile', 'tel')}
                   </div>
                   {field('email', 'Email (for confirmation)', 'you@example.com', 'email')}
                   {field('line1', 'Address line 1')}
                   {field('line2', 'Address line 2 (optional)')}
-                  <div className="quote-controls">
+                  <div className={styles.controls}>
                     {field('city', 'City')}
                     {field('state', 'State')}
                   </div>
                   {field('pincode', 'PIN code', '6 digits', 'numeric')}
                 </div>
               )}
-            </div>
+            </Reveal>
 
             {/* Right: price card */}
-            <div className="quote-col quote-col--right">
-              <div className="quote-card">
+            <Reveal className={styles.col} delay={0.1}>
+              <div className={styles.card}>
                 <div className="quote-print-only">
                   <strong>PrintGrid Studio — Quote</strong>
-                  <div className="mono" style={{ fontSize: 12, color: 'var(--ink-60)' }}>FDM 3D printing · Chennai · printgrid.co.in</div>
+                  <div className={clsx(styles.mono, styles.cardCaption)}>FDM 3D printing · Chennai · printgrid.co.in</div>
                 </div>
-                <div className="quote-card__total-headline">{result ? formatINR(result.grandTotalPaise) : '—'}</div>
-                <div className="quote-card__total-caption">Total · incl. GST</div>
+                <div className={styles.totalHeadline}>{result ? formatINR(result.grandTotalPaise) : '—'}</div>
+                <div className={styles.totalCaption}>Total · incl. GST</div>
 
-                {!result && <p className="quote-card__empty">Upload an STL to see your price.</p>}
+                {!result && <p className={styles.cardEmpty}>Upload an STL to see your price.</p>}
 
                 {result && (
                   <>
-                    <div className="quote-card__line">
-                      <div className="quote-row-line"><span>Subtotal ({fileCount} file{fileCount === 1 ? '' : 's'})</span><span className="mono">{formatINR(result.subtotalPaise)}</span></div>
-                      {result.rushFeePaise > 0 && <div className="quote-row-line"><span>Rush (+25%)</span><span className="mono">{formatINR(result.rushFeePaise)}</span></div>}
-                      {result.promoDiscountPaise > 0 && <div className="quote-row-line quote-row-line--discount"><span>Promo {result.appliedPromo}</span><span className="mono">−{formatINR(result.promoDiscountPaise)}</span></div>}
-                      <div className="quote-row-line"><span>Shipping</span><span className="mono">{result.shippingPaise === 0 ? 'Free' : formatINR(result.shippingPaise)}</span></div>
-                      <div className="quote-row-line"><span>GST (18%)</span><span className="mono">{formatINR(result.gstTotalPaise)}</span></div>
-                      <div className="quote-row-line"><span>Payment fee (2%)</span><span className="mono">{formatINR(result.paymentFeePaise)}</span></div>
+                    <div className={styles.cardLine}>
+                      <div className={styles.rowLine}><span>Subtotal ({fileCount} file{fileCount === 1 ? '' : 's'})</span><span className={styles.mono}>{formatINR(result.subtotalPaise)}</span></div>
+                      {result.rushFeePaise > 0 && <div className={styles.rowLine}><span>Rush (+25%)</span><span className={styles.mono}>{formatINR(result.rushFeePaise)}</span></div>}
+                      {result.promoDiscountPaise > 0 && <div className={clsx(styles.rowLine, styles.rowLineDiscount)}><span>Promo {result.appliedPromo}</span><span className={styles.mono}>−{formatINR(result.promoDiscountPaise)}</span></div>}
+                      <div className={styles.rowLine}><span>Shipping</span><span className={styles.mono}>{result.shippingPaise === 0 ? 'Free' : formatINR(result.shippingPaise)}</span></div>
+                      <div className={styles.rowLine}><span>GST (18%)</span><span className={styles.mono}>{formatINR(result.gstTotalPaise)}</span></div>
+                      <div className={styles.rowLine}><span>Payment fee (2%)</span><span className={styles.mono}>{formatINR(result.paymentFeePaise)}</span></div>
                     </div>
-                    <div className="quote-card__line">
-                      <div className="quote-row-line quote-row-line--strong"><span>Total</span><span className="mono">{formatINR(result.grandTotalPaise)}</span></div>
+                    <div className={styles.cardLine}>
+                      <div className={clsx(styles.rowLine, styles.rowLineStrong)}><span>Total</span><span className={styles.mono}>{formatINR(result.grandTotalPaise)}</span></div>
                     </div>
                   </>
                 )}
 
-                <label className="quote-row quote-row--check" style={{ marginTop: 8 }}>
+                <label className={clsx(styles.row, styles.rowCheck, styles.rushRow)}>
                   <input type="checkbox" checked={state.rush} onChange={() => dispatch({ type: 'TOGGLE_RUSH' })} />
                   <span>Rush — print first (+25%)</span>
                 </label>
 
-                <div className="quote-row">
-                  <span className="quote-row__label">Promo code</span>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                <div className={styles.row}>
+                  <span className={styles.rowLabel}>Promo code</span>
+                  <div className={styles.promoRow}>
                     <input
                       type="text"
                       value={state.promoInput}
                       placeholder="FIRSTPRINT"
                       onChange={(e) => dispatch({ type: 'SET_PROMO_INPUT', value: e.target.value })}
-                      style={{ textTransform: 'uppercase' }}
+                      className={styles.promoInput}
                     />
                     {state.appliedPromo ? (
-                      <button type="button" className="btn btn-ghost" onClick={() => dispatch({ type: 'CLEAR_PROMO' })}>Clear</button>
+                      <button type="button" className={styles.ctaSecondary} onClick={() => dispatch({ type: 'CLEAR_PROMO' })}>Clear</button>
                     ) : (
-                      <button type="button" className="btn btn-ghost" onClick={() => dispatch({ type: 'APPLY_PROMO' })}>Apply</button>
+                      <button type="button" className={styles.ctaSecondary} onClick={() => dispatch({ type: 'APPLY_PROMO' })}>Apply</button>
                     )}
                   </div>
-                  {state.promoError && <p className="quote-warning" style={{ marginTop: 6 }}>{state.promoError}</p>}
-                  {state.appliedPromo && <p className="quote-card__caption mono" style={{ marginTop: 6 }}>{state.appliedPromo} applied</p>}
+                  {state.promoError && <p className={clsx(styles.warning, styles.promoNote)}>{state.promoError}</p>}
+                  {state.appliedPromo && <p className={clsx(styles.cardCaption, styles.mono, styles.promoNote)}>{state.appliedPromo} applied</p>}
                 </div>
 
-                <button type="button" className="btn btn-primary quote-cta" onClick={onContinue} disabled={!canContinue || busy}>
+                <button type="button" className={styles.cta} onClick={onContinue} disabled={!canContinue || busy}>
                   {busy ? 'Working…' : 'Continue to payment'}
                 </button>
-                {blockedReason && <p className="quote-card__caption">{blockedReason}</p>}
+                {blockedReason && <p className={styles.cardCaption}>{blockedReason}</p>}
                 {result && (
-                  <button type="button" className="btn btn-ghost quote-print-hide" style={{ width: '100%' }} onClick={onDownloadPdf}>
+                  <button type="button" className={clsx(styles.ctaSecondary, 'quote-print-hide')} onClick={onDownloadPdf}>
                     Download PDF report
                   </button>
                 )}
                 {result && (
-                  <button type="button" className="btn btn-ghost quote-print-hide" style={{ width: '100%' }} onClick={() => window.print()}>
+                  <button type="button" className={clsx(styles.ctaSecondary, 'quote-print-hide')} onClick={() => window.print()}>
                     Print quote
                   </button>
                 )}
-                <p className="quote-card__caption">
+                <p className={styles.cardCaption}>
                   The charged amount is recomputed on our server from the file&rsquo;s true volume.
                 </p>
               </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>

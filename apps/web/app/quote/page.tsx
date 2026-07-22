@@ -1,6 +1,7 @@
+// apps/web/app/quote/page.tsx
 import type { Metadata } from 'next';
-import { Section } from '@/components/ui/Section';
 import { QuotePage } from './QuotePage';
+import styles from './page.module.css';
 
 export const metadata: Metadata = {
   title: 'Quote',
@@ -10,8 +11,8 @@ export const metadata: Metadata = {
 
 export default function QuoteRoute() {
   return (
-    <Section bg="ink" gridPaper>
+    <div className={styles.page}>
       <QuotePage />
-    </Section>
+    </div>
   );
 }

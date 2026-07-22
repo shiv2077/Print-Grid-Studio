@@ -1,0 +1,6 @@
+/* apps/web/app/quote/page.module.css */
+.page {
+  background: var(--canvas);
+  color: var(--text);
+  min-height: 100vh;
+}
