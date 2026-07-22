@@ -1,0 +1,170 @@
+/* apps/web/app/materials/MaterialsExplorer.module.css */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.search {
+  flex: 1;
+  min-width: 200px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.search::placeholder {
+  color: var(--text-muted);
+}
+
+.search:focus {
+  outline: none;
+  border-color: var(--accent-teal);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.chip:hover {
+  color: var(--text);
+  border-color: var(--accent-teal);
+}
+
+.chipActive {
+  background: var(--accent-teal-strong);
+  color: #fff;
+  border-color: var(--accent-teal-strong);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th {
+  text-align: left;
+  border-bottom: 1px solid var(--line-strong);
+  background: var(--surface);
+}
+
+.numCol {
+  text-align: right;
+}
+
+.sortButton {
+  display: block;
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  padding: 12px 14px;
+  text-align: inherit;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.sortButton:hover {
+  color: var(--accent-teal);
+}
+
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+}
+
+.numCell {
+  text-align: right;
+  font-family: var(--font-mono);
+}
+
+.row {
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.row:hover,
+.rowOpen {
+  background: var(--surface);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--accent-teal);
+  outline-offset: -2px;
+}
+
+.detailRow td {
+  background: var(--surface);
+  padding: 0;
+}
+
+.detail {
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detailUse {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text);
+  max-width: 70ch;
+}
+
+.detailSpecs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.detailKey {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-right: 6px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 24px;
+}
