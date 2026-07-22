@@ -1,5 +1,6 @@
 'use client';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 // The point-cloud canvas is code-split (ssr:false) and only mounted when motion
@@ -21,14 +22,14 @@ export function HeroVisual() {
   return (
     <div className="v2-herovis">
       {/* static poster: shows instantly, covers no-JS / reduced-motion / load gap */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         className="v2-herovis__fallback"
-        src="/v2/hero-fallback.svg"
+        src="/hero-fallback.svg"
         alt=""
         aria-hidden="true"
-        width={640}
-        height={640}
+        fill
+        sizes="(min-width: 940px) 42vw, 100vw"
+        priority
       />
       {animate && <HeroPointCloud />}
       <div className="v2-herovis__frame" aria-hidden="true" />

@@ -1,18 +1,19 @@
-/* PrintGrid Studio — design system (ported from the reference static site).
-   Two colours total: ink + accent, on warm paper. No shadows. Square corners.
-   Fonts come from next/font (--font-inter, --font-jetbrains) set on <html>. */
+@import './pango.css';
+
+/* Global production token layer. The public app is intentionally monochrome;
+   legacy token names remain as compatibility aliases for functional routes. */
 
 /* ---------- Tokens ---------- */
 :root {
-  --ink:        #0A0A0A;
-  --paper:      #FAFAF7;
-  --paper-warm: #F2EFE8;
-  --paper-cool: #F4F4F1;
-  --accent:     #BC3A14; /* AA-compliant (5.35:1 on paper); was #D14620 at 4.36 */
-  --accent-deep:#A12F12;
+  --ink: #ffffff;
+  --paper: #050505;
+  --paper-warm: #0d0d0d;
+  --paper-cool: #121212;
+  --accent: #ffffff;
+  --accent-deep: #d7d7d7;
 
-  --ink-10: rgba(10, 10, 10, 0.10);
-  --ink-60: rgba(10, 10, 10, 0.60);
+  --ink-10: rgba(255, 255, 255, 0.10);
+  --ink-60: rgba(255, 255, 255, 0.62);
 
   --font-sans: var(--font-inter), system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -21,43 +22,33 @@
   --wrap-pad-x:  24px;
   --grid-gap:    24px;
 
-  --paper-alpha-92: rgba(250, 250, 247, 0.92);
-  --paper-alpha-85: rgba(250, 250, 247, 0.85);
-  --scrim:          rgba(10, 10, 10, 0.5);
-}
+  --paper-alpha-92: rgba(5, 5, 5, 0.92);
+  --paper-alpha-85: rgba(5, 5, 5, 0.85);
+  --scrim: rgba(0, 0, 0, 0.7);
 
-/* ---------- Pango-inspired revamp tokens ----------
-   New, additive palette for the dark-only revamp (Homepage, Materials,
-   Orders, Quote — rolled out one phase at a time). Named --accent-teal /
-   --accent-teal-strong (not --accent / --accent-strong) so they never
-   collide with the existing orange --accent used by not-yet-migrated pages
-   and components. Exact hex values are a starting point; verify AA contrast
-   before each page that consumes them ships. */
-:root {
-  --canvas: #0A0B0D;
-  --surface: #131519;
-  --text: #EDEDED;
-  --text-secondary: #9CA3AF;
-  --text-muted: #6B7280;
-  --accent-teal: #2DD4BF;
-  --accent-teal-strong: #0F766E;
-  --line: rgba(237, 237, 237, 0.10);
-  --line-strong: rgba(237, 237, 237, 0.18);
-}
+  --canvas: #050505;
+  --surface: rgba(255, 255, 255, 0.045);
+  --text: #ffffff;
+  --text-secondary: #b5b5b5;
+  --text-muted: #777777;
+  --accent-teal: #ffffff;
+  --accent-teal-strong: #d7d7d7;
+  --line: rgba(255, 255, 255, 0.10);
+  --line-strong: rgba(255, 255, 255, 0.18);
 
-[data-theme="dark"] {
-  --ink:        #F0EFEA;
-  --paper:      #0B0B0C;
-  --paper-warm: #15151A;
-  --paper-cool: #18181D;
-  --accent:     #E55934;
-  --accent-deep:#B83D1E;
-  --ink-10: rgba(240, 239, 234, 0.10);
-  --ink-60: rgba(240, 239, 234, 0.62);
-
-  --paper-alpha-92: rgba(11, 11, 12, 0.92);
-  --paper-alpha-85: rgba(11, 11, 12, 0.85);
-  --scrim:          rgba(0, 0, 0, 0.7);
+  --v2-bg: #050505;
+  --v2-bg-raise: rgba(255, 255, 255, 0.045);
+  --v2-text: #ffffff;
+  --v2-text-secondary: #b5b5b5;
+  --v2-text-muted: #777777;
+  --v2-accent: #ffffff;
+  --v2-accent-strong: #e8e8e8;
+  --v2-line: rgba(255, 255, 255, 0.10);
+  --v2-line-strong: rgba(255, 255, 255, 0.18);
+  --v2-grid: rgba(255, 255, 255, 0.035);
+  --v2-wrap: 1200px;
+  --v2-pad-x: 24px;
+  --v2-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (min-width: 768px) {
@@ -67,13 +58,14 @@
 /* ---------- Reset ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+html { background: #050505; }
 body {
   font-family: var(--font-sans);
   font-weight: 400;
   font-size: 16px;
   line-height: 1.5;
-  color: var(--ink);
-  background: var(--paper);
+  color: var(--text);
+  background: var(--canvas);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }

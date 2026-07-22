@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { formatINR } from '@printgrid/pricing';
 import { getOrderStatus, type OrderStatus } from '@/lib/checkout';
 import { FULFILLMENT_STATUSES, STATUS_LABELS, type FulfillmentStatus } from '@/lib/fulfillment-status';
@@ -38,14 +38,22 @@ function Timeline({ order }: { order: OrderStatus }) {
         const isCurrent = i === currentIdx;
         const isLast = i === FULFILLMENT_STATUSES.length - 1;
         return (
-          <div key={s} role="listitem" className={styles.row}>
+          <motion.div
+            key={s}
+            role="listitem"
+            className={styles.row}
+            initial={reduceMotion ? false : { opacity: 0, x: -10 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.45 }}
+            transition={{ duration: 0.32, delay: reduceMotion ? 0 : i * 0.075, ease: [0.4, 0, 0.2, 1] }}
+          >
             {!isLast && (
               <motion.span
                 className={done ? `${styles.connector} ${styles.connectorDone}` : styles.connector}
                 initial={reduceMotion ? false : { scaleY: 0 }}
                 whileInView={{ scaleY: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.4, delay: i * 0.08, ease: [0.4, 0, 0.2, 1] }}
                 style={{ transformOrigin: 'top' }}
                 aria-hidden
               />
@@ -68,7 +76,7 @@ function Timeline({ order }: { order: OrderStatus }) {
               {ev?.at && <span className={`${styles.time} ${styles.mono}`}>{fmt(ev.at)}</span>}
               {ev?.note && <span className={styles.note}>{ev.note}</span>}
             </div>
-          </div>
+          </motion.div>
         );
       })}
     </div>

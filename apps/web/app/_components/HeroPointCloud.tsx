@@ -1,14 +1,14 @@
 'use client';
 import { useEffect, useRef } from 'react';
 
-// Dot-matrix point cloud of a real printed part (public/v2/part.stl), rendered
+// Dot-matrix point cloud of a real printed part (public/part.stl), rendered
 // on a plain 2D canvas — no three.js, no runtime STL parser. Points are
 // precomputed at build time (scripts/gen-hero-points.mjs). Perf guards:
 //  - DPR capped at 1.5
 //  - ~30fps cap (timestamp throttle)
 //  - paused when the tab is hidden OR the canvas is scrolled out of view
 //  - default export so it can be code-split via next/dynamic (ssr:false)
-const ACCENT = [229, 89, 52]; // #E55934
+const ACCENT = [255, 255, 255];
 const FPS_MS = 1000 / 30;
 const SPEED = 0.16; // rad/sec
 
@@ -85,7 +85,7 @@ export default function HeroPointCloud() {
     const onResize = () => { size(); if (!running) draw(); };
 
     size();
-    fetch('/v2/part-points.json')
+    fetch('/part-points.json')
       .then((r) => r.json())
       .then((d) => {
         points = d.points || [];

@@ -3,7 +3,7 @@
 
 import { Fragment, useMemo, useState } from 'react';
 import clsx from 'clsx';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { formatINR } from '@printgrid/pricing';
 import { MATERIAL_TABLE, FLEXIBILITIES, type MaterialInfo, type Flexibility } from '@/lib/materials-data';
 import styles from './MaterialsExplorer.module.css';
@@ -93,13 +93,16 @@ export function MaterialsExplorer() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((m) => (
+            {rows.map((m, index) => (
               <Fragment key={m.key}>
-                <tr
+                <motion.tr
                   className={clsx(styles.row, openKey === m.key && styles.rowOpen)}
                   tabIndex={0}
                   role="button"
                   aria-expanded={openKey === m.key}
+                  initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.32, delay: reduceMotion ? 0 : index * 0.055, ease: [0.4, 0, 0.2, 1] }}
                   onClick={() => toggleOpen(m.key)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleOpen(m.key); }
@@ -109,7 +112,7 @@ export function MaterialsExplorer() {
                     <td key={c.key} className={c.numeric ? styles.numCell : undefined}>{c.render(m)}</td>
                   ))}
                   <td>{m.flexibility}</td>
-                </tr>
+                </motion.tr>
                 {openKey === m.key && (
                   <tr className={styles.detailRow}>
                     <td colSpan={COLUMNS.length + 1}>
@@ -117,7 +120,7 @@ export function MaterialsExplorer() {
                         className={styles.detail}
                         initial={reduceMotion ? undefined : { opacity: 0, y: -8 }}
                         animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                        transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
                       >
                         <p className={styles.detailUse}>{m.use}</p>
                         <div className={styles.detailSpecs}>

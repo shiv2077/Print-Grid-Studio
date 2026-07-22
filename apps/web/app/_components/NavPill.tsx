@@ -39,7 +39,7 @@ export function NavPill() {
     <>
       <div className="v2-navwrap">
         <nav className="v2-nav" data-scrolled={scrolled} aria-label="Primary">
-          <Link href="/v2" className="v2-nav__brand">
+          <Link href="/" className="v2-nav__brand">
             <span className="v2-nav__mark">▶</span> PrintGrid
           </Link>
 
