@@ -1,0 +1,169 @@
+.page {
+  background: var(--canvas);
+  color: var(--text);
+}
+
+.hero {
+  padding: 96px 0 80px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent-teal);
+  margin-bottom: 16px;
+}
+
+.title {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin: 0 0 24px;
+  max-width: 20ch;
+}
+
+.lede {
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 56ch;
+  margin: 0 0 32px;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btnPrimary {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 24px;
+  border-radius: 10px;
+  background: var(--accent-teal-strong);
+  color: #fff;
+  display: inline-block;
+}
+
+.btnPrimary:hover {
+  background: var(--accent-teal);
+}
+
+.btnGhost {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 24px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  display: inline-block;
+}
+
+.btnGhost:hover {
+  border-color: var(--accent-teal);
+  color: var(--accent-teal);
+}
+
+.section {
+  padding: 80px 0;
+  border-top: 1px solid var(--line);
+}
+
+.sectionHead {
+  max-width: 640px;
+  margin: 0 0 48px;
+}
+
+.sectionTitle {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 8px 0 12px;
+}
+
+.stepGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.stepNum {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent-teal);
+  display: block;
+  margin-bottom: 12px;
+}
+
+.stepTitle {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.stepBody {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.rowlist {
+  display: flex;
+  flex-direction: column;
+}
+
+.rowlistRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.rowlistRow:last-child {
+  border-bottom: none;
+}
+
+.rowlistLabel {
+  color: var(--text-secondary);
+}
+
+.rowlistValue {
+  color: var(--text);
+}
+
+.ctaBand {
+  padding: 96px 0;
+  text-align: center;
+  border-top: 1px solid var(--line);
+}
+
+.ctaTitle {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+.ctaLede {
+  font-size: 17px;
+  color: var(--text-secondary);
+  max-width: 48ch;
+  margin: 0 auto 32px;
+}
