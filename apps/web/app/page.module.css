@@ -54,6 +54,7 @@
 
 .btnPrimary:hover {
   background: var(--accent-teal);
+  color: var(--canvas);
 }
 
 .btnGhost {
