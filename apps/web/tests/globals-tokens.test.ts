@@ -15,7 +15,7 @@ describe('globals.css design tokens', () => {
     expect(css).toMatch(/--text-secondary:\s*#9CA3AF/);
     expect(css).toMatch(/--text-muted:\s*#6B7280/);
     expect(css).toMatch(/--accent-teal:\s*#2DD4BF/);
-    expect(css).toMatch(/--accent-teal-strong:\s*#0D9488/);
+    expect(css).toMatch(/--accent-teal-strong:\s*#0F766E/);
     expect(css).toMatch(/--line:\s*rgba\(237,\s*237,\s*237,\s*0\.10\)/);
     expect(css).toMatch(/--line-strong:\s*rgba\(237,\s*237,\s*237,\s*0\.18\)/);
   });
