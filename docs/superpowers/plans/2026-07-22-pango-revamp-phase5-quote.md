@@ -200,7 +200,7 @@ describe('QuotePage', () => {
 - [ ] **Step 2: Run the tests against today's unmodified component**
 
 Run: `pnpm --filter web test -- quote-page`
-Expected: PASS (11/11) — characterization suite, not RED/GREEN TDD. If a test's assumption about exact current text/labels is wrong, fix the TEST to match reality — do not touch `QuotePage.tsx` or `state.ts`. The three promo tests assert exact real strings (`FIRSTPRINT applied`, `That code does not match any active promo.`) taken directly from reading `state.ts` (read-only, for test accuracy — not edited).
+Expected: PASS (10/10) — characterization suite, not RED/GREEN TDD. If a test's assumption about exact current text/labels is wrong, fix the TEST to match reality — do not touch `QuotePage.tsx` or `state.ts`. The three promo tests assert exact real strings (`FIRSTPRINT applied`, `That code does not match any active promo.`) taken directly from reading `state.ts` (read-only, for test accuracy — not edited).
 
 - [ ] **Step 3: Commit**
 
@@ -225,7 +225,7 @@ git commit -m "test: characterize current QuotePage behavior before Pango reskin
 - [ ] **Step 1: Confirm the characterization suite from Task 1 is still green before starting**
 
 Run: `pnpm --filter web test -- quote-page`
-Expected: PASS (11/11)
+Expected: PASS (10/10)
 
 - [ ] **Step 2: Create `QuotePage.module.css`**
 
@@ -1214,7 +1214,7 @@ export default function QuoteRoute() {
 - [ ] **Step 6: Run the characterization suite and confirm it is still fully green**
 
 Run: `pnpm --filter web test -- quote-page`
-Expected: PASS (11/11) — unchanged from Task 1. If a label/placeholder-based query breaks because CSS-Module class hashing changed something the test located by class name (none should — the Task 1 suite was written to query by label/placeholder/role/text, not class name, specifically to survive this), investigate before assuming the test needs changing.
+Expected: PASS (10/10) — unchanged from Task 1. If a label/placeholder-based query breaks because CSS-Module class hashing changed something the test located by class name (none should — the Task 1 suite was written to query by label/placeholder/role/text, not class name, specifically to survive this), investigate before assuming the test needs changing.
 
 - [ ] **Step 7: Run typecheck**
 
@@ -1237,7 +1237,7 @@ git commit -m "feat: reskin Quote page with AgentInput dropzone and Pango-inspir
 - [ ] **Step 1: Full test suite**
 
 Run: `pnpm --filter web test`
-Expected: all test files pass, including every pre-existing suite plus the 11 new `quote-page` tests.
+Expected: all test files pass, including every pre-existing suite plus the 10 new `quote-page` tests.
 
 - [ ] **Step 2: Typecheck**
 
