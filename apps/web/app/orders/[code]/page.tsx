@@ -49,7 +49,7 @@ function Timeline({ order }: { order: OrderStatus }) {
                 style={{ transformOrigin: 'top' }}
               />
             )}
-            <span className={styles.dotWrap}>
+            <span className={styles.dotWrap} aria-hidden>
               <span className={done ? `${styles.dot} ${styles.dotDone}` : styles.dot} />
               {isCurrent && !reduceMotion && (
                 <motion.span
