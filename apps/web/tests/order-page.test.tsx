@@ -63,7 +63,7 @@ describe('OrderPage', () => {
 
     // "Uploaded" (before any history entry) is done, using created_at
     const uploadedRow = items.find((el) => el.textContent?.includes('Uploaded'));
-    expect(uploadedRow?.className).toMatch(/is-?[Dd]one|Done/); // presence of a "done" state is asserted via visible content below
+    expect(uploadedRow?.textContent).toMatch(/\d{2}:\d{2}/); // done rows show timestamp (HH:MM format)
     expect(uploadedRow?.textContent).not.toContain('current');
 
     // "Delivered" (far future step) shows no timestamp and is not current

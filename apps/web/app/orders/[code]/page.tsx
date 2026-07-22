@@ -1,9 +1,12 @@
+// apps/web/app/orders/[code]/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { formatINR } from '@printgrid/pricing';
 import { getOrderStatus, type OrderStatus } from '@/lib/checkout';
 import { FULFILLMENT_STATUSES, STATUS_LABELS, type FulfillmentStatus } from '@/lib/fulfillment-status';
+import styles from './page.module.css';
 
 const PAYMENT_LABEL: Record<string, string> = {
   pending: 'Payment pending',
@@ -20,6 +23,7 @@ function fmt(at?: string | null): string {
 }
 
 function Timeline({ order }: { order: OrderStatus }) {
+  const reduceMotion = useReducedMotion();
   const current = (order.fulfillment_status ?? 'uploaded') as FulfillmentStatus;
   const currentIdx = Math.max(0, FULFILLMENT_STATUSES.indexOf(current));
   // last event per status
@@ -27,25 +31,41 @@ function Timeline({ order }: { order: OrderStatus }) {
   for (const h of order.history ?? []) byStatus.set(h.status, { at: h.at, note: h.note });
 
   return (
-    <div className="timeline" role="list" aria-label="Order progress">
+    <div className={styles.timeline} role="list" aria-label="Order progress">
       {FULFILLMENT_STATUSES.map((s, i) => {
         const ev = s === 'uploaded' ? { at: order.created_at ?? null, note: null } : byStatus.get(s) ?? null;
         const done = i <= currentIdx;
         const isCurrent = i === currentIdx;
+        const isLast = i === FULFILLMENT_STATUSES.length - 1;
         return (
-          <div
-            key={s}
-            role="listitem"
-            className={'timeline__row' + (done ? ' is-done' : '') + (isCurrent ? ' is-current' : '')}
-          >
-            <span className="timeline__dot" aria-hidden />
-            <div className="timeline__body">
-              <span className="timeline__label">
+          <div key={s} role="listitem" className={styles.row}>
+            {!isLast && (
+              <motion.span
+                className={done ? `${styles.connector} ${styles.connectorDone}` : styles.connector}
+                initial={reduceMotion ? false : { scaleY: 0 }}
+                whileInView={{ scaleY: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                style={{ transformOrigin: 'top' }}
+              />
+            )}
+            <span className={styles.dotWrap}>
+              <span className={done ? `${styles.dot} ${styles.dotDone}` : styles.dot} />
+              {isCurrent && !reduceMotion && (
+                <motion.span
+                  className={styles.dotPulse}
+                  animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }}
+                  transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                />
+              )}
+            </span>
+            <div className={styles.body}>
+              <span className={done ? `${styles.label} ${styles.labelDone}` : styles.label}>
                 {STATUS_LABELS[s]}
-                {isCurrent && <span className="timeline__current-tag"> · current</span>}
+                {isCurrent && <span className={styles.currentTag}> · current</span>}
               </span>
-              {ev?.at && <span className="timeline__time mono">{fmt(ev.at)}</span>}
-              {ev?.note && <span className="timeline__note">{ev.note}</span>}
+              {ev?.at && <span className={`${styles.time} ${styles.mono}`}>{fmt(ev.at)}</span>}
+              {ev?.note && <span className={styles.note}>{ev.note}</span>}
             </div>
           </div>
         );
@@ -69,61 +89,61 @@ export default function OrderPage({ params }: { params: { code: string } }) {
 
   return (
     <>
-      <section className="page-head">
+      <section className={styles.head}>
         <div className="wrap">
-          <div className="eyebrow page-head__eyebrow">Order</div>
-          <h1 className="display-2 mono">{code}</h1>
-          <p className="lede">Track the status of your PrintGrid Studio order.</p>
+          <div className={styles.eyebrow}>Order</div>
+          <h1 className={styles.title}>{code}</h1>
+          <p className={styles.lede}>Track the status of your PrintGrid Studio order.</p>
         </div>
       </section>
 
-      <section className="order">
+      <section className={styles.section}>
         <div className="wrap">
-          {state === 'loading' && <p className="mono" style={{ color: 'var(--ink-60)' }} role="status">Loading…</p>}
+          {state === 'loading' && <p className={styles.loading} role="status">Loading…</p>}
 
           {state === 'error' && (
-            <div className="order-card" role="alert">
-              <h2 className="display-2" style={{ fontSize: 24 }}>Couldn&rsquo;t load this order.</h2>
-              <p style={{ color: 'var(--ink-60)' }}>Something went wrong reaching the server. Please try again in a moment.</p>
+            <div className={styles.card} role="alert">
+              <h2 className={styles.cardTitle}>Couldn&rsquo;t load this order.</h2>
+              <p className={styles.mutedText}>Something went wrong reaching the server. Please try again in a moment.</p>
             </div>
           )}
 
           {state === 'notfound' && (
-            <div className="order-card" role="alert">
-              <h2 className="display-2" style={{ fontSize: 24 }}>No order matches that code.</h2>
-              <p style={{ color: 'var(--ink-60)' }}>
-                Order codes look like <span className="mono">PG-XXXXXXXX</span>. Check the link in your
+            <div className={styles.card} role="alert">
+              <h2 className={styles.cardTitle}>No order matches that code.</h2>
+              <p className={styles.mutedText}>
+                Order codes look like <span className={styles.mono}>PG-XXXXXXXX</span>. Check the link in your
                 confirmation email, or reach us on WhatsApp.
               </p>
-              <a className="btn btn-ghost" href="https://wa.me/917540023670" target="_blank" rel="noopener noreferrer">
+              <a className={styles.linkGhost} href="https://wa.me/917540023670" target="_blank" rel="noopener noreferrer">
                 Open WhatsApp →
               </a>
             </div>
           )}
 
           {state === 'found' && order && (
-            <div className="order-card">
-              <span className={'order-status' + (order.status === 'paid' ? ' order-status--paid' : '')}>
+            <div className={styles.card}>
+              <span className={order.status === 'paid' ? `${styles.status} ${styles.statusPaid}` : styles.status}>
                 {PAYMENT_LABEL[order.status] ?? order.status}
               </span>
-              <div className="quote-card__total-headline">{formatINR(order.amount_paise)}</div>
-              <div className="quote-card__total-caption">Order total · incl. GST</div>
+              <div className={styles.totalHeadline}>{formatINR(order.amount_paise)}</div>
+              <div className={styles.totalCaption}>Order total · incl. GST</div>
 
               {order.status === 'pending' && (
-                <p style={{ color: 'var(--ink-60)' }}>
+                <p className={styles.mutedText}>
                   We&rsquo;re waiting for payment confirmation. This page updates once your payment is verified.
                 </p>
               )}
 
               {order.status === 'paid' && (
                 <>
-                  <h2 className="timeline__heading">Progress</h2>
+                  <h2 className={styles.timelineHeading}>Progress</h2>
                   <Timeline order={order} />
                 </>
               )}
 
               <a
-                className="btn btn-ghost"
+                className={styles.linkGhost}
                 href={`https://wa.me/917540023670?text=${encodeURIComponent(`Hi — about order ${code}.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
