@@ -87,7 +87,7 @@ export default function HomePage() {
             <h2 className={styles.sectionTitle}>Seven FDM materials, kept in stock.</h2>
             <p className={styles.lede}>
               PLA+, PLA LW, PETG, ABS, TPU 95A, PA6 and PA-CF — from everyday brackets to
-              engineering-grade carbon-filled nylon. No "available on request".
+              engineering-grade carbon-filled nylon. No “available on request”.
             </p>
             <Link className={styles.btnGhost} href="/materials">
               See materials &amp; specs →
