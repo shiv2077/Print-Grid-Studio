@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ThemeToggle } from './ThemeToggle';
+import styles from './Header.module.css';
 
 const NAV_LINKS = [
   { href: '/materials', label: 'Materials' },
@@ -10,24 +10,20 @@ const NAV_LINKS = [
 
 export function Header() {
   return (
-    <header className="site-header">
-      <div className="wrap">
-        <Link className="wordmark" href="/" aria-label="PrintGrid Studio home">
-          PrintGrid
-          <span className="wordmark__sub">Studio · 3D printing</span>
-        </Link>
-        <nav className="site-nav" aria-label="Primary">
-          {NAV_LINKS.map((link) => (
-            <Link key={link.href} className="nav-link" href={link.href}>
-              {link.label}
-            </Link>
-          ))}
-          <ThemeToggle />
-          <Link className="btn btn-primary" href="/quote">
-            Get a quote
+    <header className={styles.header}>
+      <Link className={styles.wordmark} href="/" aria-label="PrintGrid Studio home">
+        PrintGrid
+      </Link>
+      <nav className={styles.nav} aria-label="Primary">
+        {NAV_LINKS.map((link) => (
+          <Link key={link.href} className={styles.navLink} href={link.href}>
+            {link.label}
           </Link>
-        </nav>
-      </div>
+        ))}
+        <Link className={styles.cta} href="/quote">
+          Get a quote
+        </Link>
+      </nav>
     </header>
   );
 }
