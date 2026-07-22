@@ -74,8 +74,13 @@
 
 .table th {
   text-align: left;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--line-strong);
   background: var(--surface);
+}
+
+.table th .sortButton {
+  padding: 0;
 }
 
 .numCol {
