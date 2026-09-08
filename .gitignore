@@ -45,3 +45,6 @@ screenshots/
 # editor
 .vscode/
 .idea/
+
+# v2 design loop working screenshots (final set committed separately)
+design/shots-v2/round-*/

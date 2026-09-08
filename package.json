@@ -16,5 +16,8 @@
     "build:pricing": "pnpm --filter @printgrid/pricing build",
     "build:web": "pnpm --filter @printgrid/pricing build && pnpm --filter web build",
     "dev:web": "pnpm --filter web dev"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.61.0"
   }
 }

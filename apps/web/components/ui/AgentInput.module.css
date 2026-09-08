@@ -1,0 +1,41 @@
+.shell {
+  position: relative;
+  border-radius: 12px;
+}
+
+.shell:focus-within {
+  box-shadow: 0 0 0 2px var(--accent-teal);
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0;
+  pointer-events: none;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: pre;
+}
+
+.cursor {
+  display: inline-block;
+  width: 7px;
+  height: 15px;
+  background: var(--accent-teal);
+  animation: caret-blink 1s steps(2, start) infinite;
+}
+
+@keyframes caret-blink {
+  to { visibility: hidden; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    animation: none;
+  }
+}

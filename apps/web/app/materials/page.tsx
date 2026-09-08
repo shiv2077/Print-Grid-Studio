@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { MaterialsExplorer } from './MaterialsExplorer';
+import { Reveal } from '@/components/ui/Reveal';
 import { MATERIAL_TABLE } from '@/lib/materials-data';
 import { SITE_URL } from '@/lib/site';
+import styles from './page.module.css';
 
 export const metadata: Metadata = {
   title: 'Materials',
@@ -43,20 +45,24 @@ export default function MaterialsPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(materialsLd) }} />
-      <section className="page-head">
+      <section className={styles.head}>
         <div className="wrap">
-          <div className="eyebrow page-head__eyebrow">Materials</div>
-          <h1 className="display-2">Seven FDM materials, compared.</h1>
-          <p className="lede">
-            Sort by cost, strength, or temperature. Filter by flexibility. Open a row for the full
-            spec and what it&rsquo;s good for. All seven kept in stock.
-          </p>
+          <Reveal>
+            <div className={styles.eyebrow}>Materials</div>
+            <h1 className={styles.title}>Seven FDM materials, compared.</h1>
+            <p className={styles.lede}>
+              Sort by cost, strength, or temperature. Filter by flexibility. Open a row for the full
+              spec and what it&rsquo;s good for. All seven kept in stock.
+            </p>
+          </Reveal>
         </div>
       </section>
 
-      <section className="materials">
+      <section className={styles.section}>
         <div className="wrap">
-          <MaterialsExplorer />
+          <Reveal>
+            <MaterialsExplorer />
+          </Reveal>
         </div>
       </section>
     </>

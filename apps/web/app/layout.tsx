@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
-import { StatusStrip } from '@/components/layout/StatusStrip';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
+import { NavPill } from './_components/NavPill';
+import { V2SmoothScroll } from './_components/V2SmoothScroll';
+import { PageTransition } from './_components/PageTransition';
 import { SITE_URL, SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION, BUSINESS } from '@/lib/site';
 import './globals.css';
 
@@ -44,9 +44,6 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-// Set the theme before first paint so there's no flash of the wrong palette.
-const themeInit = `(function(){try{var k='printgrid-theme';var s=localStorage.getItem(k);var p=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',s||p);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`;
-
 // LocalBusiness structured data (JSON-LD).
 const localBusinessLd = {
   '@context': 'https://schema.org',
@@ -70,15 +67,18 @@ const localBusinessLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body>
-        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessLd) }} />
-        <a href="#main" className="skip-link">Skip to content</a>
-        <StatusStrip />
-        <Header />
-        <main id="main">{children}</main>
-        <Footer />
+        <div className="v2-root">
+          <V2SmoothScroll>
+            <div className="v2-gridlines" aria-hidden="true"><div className="v2-gridlines__band" /></div>
+            <NavPill />
+            <PageTransition>
+              <main id="main">{children}</main>
+            </PageTransition>
+          </V2SmoothScroll>
+        </div>
       </body>
     </html>
   );

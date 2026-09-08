@@ -1,8 +1,12 @@
+// apps/web/app/materials/MaterialsExplorer.tsx
 'use client';
 
 import { Fragment, useMemo, useState } from 'react';
+import clsx from 'clsx';
+import { motion, useReducedMotion } from 'framer-motion';
 import { formatINR } from '@printgrid/pricing';
 import { MATERIAL_TABLE, FLEXIBILITIES, type MaterialInfo, type Flexibility } from '@/lib/materials-data';
+import styles from './MaterialsExplorer.module.css';
 
 type SortKey = 'name' | 'ratePerGramPaise' | 'tensileMpa' | 'maxTempC' | 'density';
 
@@ -20,6 +24,7 @@ export function MaterialsExplorer() {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [asc, setAsc] = useState(true);
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const reduceMotion = useReducedMotion();
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -44,21 +49,21 @@ export function MaterialsExplorer() {
 
   return (
     <>
-      <div className="cmp-controls">
+      <div className={styles.controls}>
         <input
-          className="cmp-search"
+          className={styles.search}
           type="text"
           placeholder="Search materials or uses…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           aria-label="Search materials"
         />
-        <div className="cmp-chips" role="group" aria-label="Filter by flexibility">
+        <div className={styles.chips} role="group" aria-label="Filter by flexibility">
           {(['All', ...FLEXIBILITIES] as const).map((f) => (
             <button
               key={f}
               type="button"
-              className={'cmp-chip' + (flex === f ? ' is-active' : '')}
+              className={clsx(styles.chip, flex === f && styles.chipActive)}
               aria-pressed={flex === f}
               onClick={() => setFlex(f)}
             >
@@ -68,17 +73,17 @@ export function MaterialsExplorer() {
         </div>
       </div>
 
-      <div className="cmp-table-wrap">
-        <table className="cmp-table">
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
           <thead>
             <tr>
               {COLUMNS.map((c) => (
                 <th
                   key={c.key}
-                  className={c.numeric ? 'is-num' : ''}
+                  className={c.numeric ? styles.numCol : undefined}
                   aria-sort={sortKey === c.key ? (asc ? 'ascending' : 'descending') : 'none'}
                 >
-                  <button type="button" className="cmp-sort" onClick={() => toggleSort(c.key)}>
+                  <button type="button" className={styles.sortButton} onClick={() => toggleSort(c.key)}>
                     {c.label}
                     {sortKey === c.key ? (asc ? ' ▲' : ' ▼') : ''}
                   </button>
@@ -88,36 +93,44 @@ export function MaterialsExplorer() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((m) => (
+            {rows.map((m, index) => (
               <Fragment key={m.key}>
-                <tr
-                  className={'cmp-row' + (openKey === m.key ? ' is-open' : '')}
+                <motion.tr
+                  className={clsx(styles.row, openKey === m.key && styles.rowOpen)}
                   tabIndex={0}
                   role="button"
                   aria-expanded={openKey === m.key}
+                  initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.32, delay: reduceMotion ? 0 : index * 0.055, ease: [0.4, 0, 0.2, 1] }}
                   onClick={() => toggleOpen(m.key)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleOpen(m.key); }
                   }}
                 >
                   {COLUMNS.map((c) => (
-                    <td key={c.key} className={c.numeric ? 'is-num mono' : ''}>{c.render(m)}</td>
+                    <td key={c.key} className={c.numeric ? styles.numCell : undefined}>{c.render(m)}</td>
                   ))}
                   <td>{m.flexibility}</td>
-                </tr>
+                </motion.tr>
                 {openKey === m.key && (
-                  <tr className="cmp-detail-row">
+                  <tr className={styles.detailRow}>
                     <td colSpan={COLUMNS.length + 1}>
-                      <div className="cmp-detail">
-                        <p className="cmp-detail__use">{m.use}</p>
-                        <div className="cmp-detail__specs">
-                          <span><span className="cmp-detail__k">Finish</span> {m.finish}</span>
-                          <span><span className="cmp-detail__k">Cost</span> {formatINR(m.ratePerGramPaise)}/g</span>
-                          <span><span className="cmp-detail__k">Density</span> {m.density} g/cm³</span>
-                          <span><span className="cmp-detail__k">Tensile</span> {m.tensileMpa} MPa</span>
-                          <span><span className="cmp-detail__k">Max temp</span> {m.maxTempC} °C</span>
+                      <motion.div
+                        className={styles.detail}
+                        initial={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                        animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                      >
+                        <p className={styles.detailUse}>{m.use}</p>
+                        <div className={styles.detailSpecs}>
+                          <span><span className={styles.detailKey}>Finish</span> {m.finish}</span>
+                          <span><span className={styles.detailKey}>Cost</span> {formatINR(m.ratePerGramPaise)}/g</span>
+                          <span><span className={styles.detailKey}>Density</span> {m.density} g/cm³</span>
+                          <span><span className={styles.detailKey}>Tensile</span> {m.tensileMpa} MPa</span>
+                          <span><span className={styles.detailKey}>Max temp</span> {m.maxTempC} °C</span>
                         </div>
-                      </div>
+                      </motion.div>
                     </td>
                   </tr>
                 )}
@@ -125,7 +138,7 @@ export function MaterialsExplorer() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={COLUMNS.length + 1} className="cmp-empty">No materials match that filter.</td>
+                <td colSpan={COLUMNS.length + 1} className={styles.empty}>No materials match that filter.</td>
               </tr>
             )}
           </tbody>
